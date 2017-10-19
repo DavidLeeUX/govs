@@ -284,11 +284,11 @@ type Vs_stats_ctl_r struct {
 	Msg          string
 	Num_services int
 	Seq          int
+	Wait_group   int
 	Workers      []struct {
 		Worker_id    int
 		Num_services int
 		Seq          int
-		State        int
 	}
 }
 
@@ -303,12 +303,12 @@ func (r Vs_stats_ctl_r) String() string {
 		return fmt.Sprintf("%s:%s", Ecode(r.Code), r.Msg)
 	}
 	ret := fmt.Sprintf("%-10s %10s %10s %10s\n",
-		"id", "seq", "n_svc", "state")
-	ret += fmt.Sprintf("%-10s %10d %10d %10c\n\n",
-		"-", r.Seq, r.Num_services, '-')
+		"id", "seq", "n_svc", "wait_group")
+	ret += fmt.Sprintf("%-10s %10d %10d %10d\n\n",
+		"-", r.Seq, r.Num_services, r.Wait_group)
 	for _, e := range r.Workers {
-		ret += fmt.Sprintf("%-10d %10d %10d %10c\n",
-			e.Worker_id, e.Seq, e.Num_services, ctl_state_name(e.State))
+		ret += fmt.Sprintf("%-10d %10d %10d\n",
+			e.Worker_id, e.Seq, e.Num_services)
 
 	}
 	return ret
@@ -358,16 +358,6 @@ type Vs_stats_q struct {
 	Id   int
 }
 
-func ctl_state_name(s int) byte {
-	switch s {
-	case VS_CTL_S_SYNC:
-		return 's'
-	case VS_CTL_S_PENDING:
-		return 'p'
-	default:
-		return '-'
-	}
-}
 func Get_stats_io(id int) (*Vs_stats_io_r, error) {
 	args := Vs_stats_q{Type: VS_STATS_IO, Id: id}
 	reply := &Vs_stats_io_r{}
