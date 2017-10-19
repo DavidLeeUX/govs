@@ -55,13 +55,14 @@ const (
 )
 
 var (
-	client *rpc.Client
-	CmdOpt CmdOptions
+	client   *rpc.Client
+	CmdOpt   CmdOptions
+	FirstCmd FirstCommand
 )
 
 type CallOptions struct {
-	Opt  CmdOptions
-	Args []string
+	Opt CmdOptions
+	//	Args []string
 }
 
 type CmdOptions struct {
@@ -82,7 +83,6 @@ type CmdOptions struct {
 	Netmask    Be32
 
 	/* dest */
-	D           bool
 	Dnic        uint
 	Daddr       Addr4
 	Conn_flags  uint
@@ -91,7 +91,6 @@ type CmdOptions struct {
 	L_threshold uint
 
 	/* local addr */
-	L    bool
 	Lnic uint
 	Lip  Be32
 
@@ -99,6 +98,128 @@ type CmdOptions struct {
 	Tcp_timeout     int
 	Tcp_fin_timeout int
 	Udp_timeout     int
+}
+
+type FirstCommand struct {
+	ADD      bool
+	EDIT     bool
+	DEL      bool
+	ADDDEST  bool
+	EDITDEST bool
+	DELDEST  bool
+	FLUSH    bool
+	LIST     bool
+	ZERO     bool
+	USAGE    bool
+	VERSION  bool
+	ADDLADDR bool
+	DELLADDR bool
+	GETLADDR bool
+	TIMEOUT  bool
+	STATUS   bool
+}
+
+const (
+	CMD_NONE = iota
+	CMD_ADD
+	CMD_EDIT
+	CMD_DEL
+	CMD_ADDDEST
+	CMD_EDITDEST
+	CMD_DELDEST
+	CMD_FLUSH
+	CMD_LIST
+	CMD_ZERO
+	CMD_VERSION
+	CMD_ADDLADDR
+	CMD_DELLADDR
+	CMD_GETLADDR
+	CMD_TIMEOUT
+	CMD_STATUS
+	CMD_LAST
+)
+
+const NUMBER_OF_CMD = CMD_LAST - 1
+
+const (
+	OPT_NONE = iota
+	OPT_SERVICE
+	OPT_NETMASK
+	OPT_SCHEDULER
+	OPT_FLAGS
+	OPT_REALSERVER
+	OPT_WEIGHT
+	OPT_UTHRESHOLD
+	OPT_LTHRESHOLD
+	OPT_LADDR
+	OPT_TYPE
+	OPT_ID
+	OPT_TIMEOUT
+	OPT_CONNFLAGS
+	OPT_LAST
+)
+
+const NUMBER_OF_OPT = OPT_LAST - 1
+
+var CMDNAMES = [NUMBER_OF_CMD]string{
+	"add-service",
+	"edit-service",
+	"delete-service",
+	"add-realserver",
+	"edit-realserver",
+	"delete-realserver",
+	"flush",
+	"list",
+	"zero",
+	"version",
+	"add-localaddr",
+	"del-localaddr",
+	"get-localaddr",
+	"timeout",
+	"status",
+}
+
+var OPTNAMES = [NUMBER_OF_OPT]string{
+	"service",
+	"netmask",
+	"scheduler",
+	"flags",
+	"real-server",
+	"weight",
+	"u-threshold",
+	"l-threshold",
+	"localaddr",
+	"type",
+	"id",
+	"timeout",
+	"conn-flags",
+}
+
+/*
+* Table of legal combinations of commands and options.
+* Key:
+*  '+'  compulsory
+*  'x'  illegal
+*  ' '  optional
+ */
+
+var CMD_V_OPT = [NUMBER_OF_CMD][NUMBER_OF_OPT]byte{
+	/*            svc  -M   -s  flags -r   -w   -x   -y   -z  type  -i timeout connflags */
+	/*ADD     */ {'+', ' ', ' ', ' ', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
+	/*EDIT    */ {'+', ' ', ' ', ' ', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
+	/*DEL     */ {'+', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
+	/*ADDDEST */ {'+', 'x', 'x', 'x', '+', ' ', ' ', ' ', 'x', 'x', 'x', 'x', ' '},
+	/*EDITDEST*/ {'+', 'x', 'x', 'x', '+', ' ', ' ', ' ', 'x', 'x', 'x', 'x', ' '},
+	/*DELDEST */ {'+', 'x', 'x', 'x', '+', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
+	/*FLUSH   */ {'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
+	/*LIST    */ {' ', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
+	/*ZERO    */ {'+', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
+	/*VERSION */ {'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
+	/*ADDLADDR*/ {'+', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '+', 'x', 'x', 'x', 'x'},
+	/*DELLADDR*/ {'+', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '+', 'x', 'x', 'x', 'x'},
+	/*GETLADDR*/ {' ', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
+	/*TIMEOUT */ {'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', ' ', 'x'},
+	/*STATUS  */ {'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', ' ', 'x', 'x', 'x'},
 }
 
 type Be32 uint32

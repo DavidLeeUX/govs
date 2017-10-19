@@ -23,8 +23,6 @@ var (
 
 func main() {
 
-	flags.Parse()
-
 	usr, err := user.Current()
 	if err != nil {
 		fmt.Println(err.Error())
@@ -36,19 +34,16 @@ func main() {
 		return
 	}
 
-	cmd := flags.CommandLine.Cmd
-	if cmd != nil && cmd.Action != nil {
-		err := govs.Vs_dial()
-		if err != nil {
-			fmt.Println(ECONN.Error())
-			return
-		}
+	handler()
 
-		defer govs.Vs_close()
-		cmd.Action(&govs.CallOptions{Opt: govs.CmdOpt,
-			Args: cmd.Flag.Args()})
-	} else {
-		flags.Usage()
+	cmd := flags.Cmd
+	if cmd.Action == nil {
+		return
 	}
-
+	if err := govs.Vs_dial(); err != nil {
+		fmt.Println(ECONN.Error())
+		return
+	}
+	defer govs.Vs_close()
+	cmd.Action(&govs.CallOptions{Opt: govs.CmdOpt})
 }
