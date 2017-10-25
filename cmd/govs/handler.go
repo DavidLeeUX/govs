@@ -537,10 +537,12 @@ func falcon_handle(id int) {
 	for _, e := range relay_dev.Dev {
 		ret += fmt.Sprintf("net.if.in.packets %d iface=port%d\n", e.Ipackets, e.Port_id)
 		ret += fmt.Sprintf("net.if.in.bytes %d iface=port%d\n", e.Ibytes, e.Port_id)
+		ret += fmt.Sprintf("net.if.in.bits %d iface=port%d\n", e.Ibytes*8, e.Port_id)
 		ret += fmt.Sprintf("net.if.in.errors %d iface=port%d\n", e.Ierrors, e.Port_id)
 		ret += fmt.Sprintf("net.if.in.dropped %d iface=port%d\n", e.Imissed, e.Port_id)
 		ret += fmt.Sprintf("net.if.out.packets %d iface=port%d\n", e.Opackets, e.Port_id)
 		ret += fmt.Sprintf("net.if.out.bytes %d iface=port%d\n", e.Obytes, e.Port_id)
+		ret += fmt.Sprintf("net.if.out.bits %d iface=port%d\n", e.Obytes*8, e.Port_id)
 		ret += fmt.Sprintf("net.if.out.errors %d iface=port%d\n", e.Oerrors, e.Port_id)
 	}
 	fmt.Println(ret)
