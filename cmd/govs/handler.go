@@ -504,6 +504,12 @@ func Usage() {
 }
 
 func falcon_handle(id int) {
+	falcon_io(id)
+	falcon_dev(id)
+	falcon_mem(id)
+}
+
+func falcon_io(id int) {
 	var ret string
 	var rx_ring_pkts_drop int64
 
@@ -524,6 +530,12 @@ func falcon_handle(id int) {
 	}
 	ret += fmt.Sprintf("net.if.in.ring.drop.pkts %d\n", rx_ring_pkts_drop)
 
+	fmt.Printf("%s", ret)
+}
+
+func falcon_dev(id int) {
+	var ret string
+
 	//get dev stats
 	relay_dev, err := govs.Get_stats_dev(id)
 	if err != nil {
@@ -531,7 +543,7 @@ func falcon_handle(id int) {
 		return
 	}
 	if relay_dev.Code != 0 {
-		fmt.Printf("%s:%s", govs.Ecode(relay_io.Code), relay_io.Msg)
+		fmt.Printf("%s:%s", govs.Ecode(relay_dev.Code), relay_dev.Msg)
 		return
 	}
 	for _, e := range relay_dev.Dev {
@@ -545,5 +557,51 @@ func falcon_handle(id int) {
 		ret += fmt.Sprintf("net.if.out.bits %d iface=port%d\n", e.Obytes*8, e.Port_id)
 		ret += fmt.Sprintf("net.if.out.errors %d iface=port%d\n", e.Oerrors, e.Port_id)
 	}
-	fmt.Println(ret)
+
+	fmt.Printf("%s", ret)
+}
+
+func falcon_mem(id int) {
+	var ret string
+
+	// get mem stats
+	var res_mem struct {
+		mbuf_used  int
+		svc_used   int
+		rs_used    int
+		laddr_used int
+		conn_used  int
+	}
+
+	relay_mem, err := govs.Get_stats_mem()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	if relay_mem.Code != 0 {
+		fmt.Printf("%s:%s", govs.Ecode(relay_mem.Code), relay_mem.Msg)
+		return
+	}
+
+	for _, e := range relay_mem.Available {
+		res_mem.mbuf_used += (relay_mem.Size.Mbuf - e.Mbuf)
+		res_mem.svc_used += (relay_mem.Size.Svc - e.Svc)
+		res_mem.rs_used += (relay_mem.Size.Rs - e.Rs)
+		res_mem.laddr_used += (relay_mem.Size.Laddr - e.Laddr)
+		res_mem.conn_used += (relay_mem.Size.Conn - e.Conn)
+	}
+
+	ret += fmt.Sprintf("mbuf.num.used %d\n", res_mem.mbuf_used)
+	ret += fmt.Sprintf("svc.num.used %d\n", res_mem.svc_used)
+	ret += fmt.Sprintf("rs.num.used %d\n", res_mem.rs_used)
+	ret += fmt.Sprintf("laddr.num.used %d\n", res_mem.laddr_used)
+	ret += fmt.Sprintf("conn.num.used %d\n", res_mem.conn_used)
+
+	ret += fmt.Sprintf("mbuf.percent.used %f\n", float64(res_mem.mbuf_used)/float64(relay_mem.Size.Mbuf))
+	ret += fmt.Sprintf("svc.percent.used %f\n", float64(res_mem.svc_used)/float64(relay_mem.Size.Svc))
+	ret += fmt.Sprintf("rs.percent.used %f\n", float64(res_mem.rs_used)/float64(relay_mem.Size.Rs))
+	ret += fmt.Sprintf("laddr.percent.used %f\n", float64(res_mem.laddr_used)/float64(relay_mem.Size.Laddr))
+	ret += fmt.Sprintf("conn.percent.used %f\n", float64(res_mem.conn_used)/float64(relay_mem.Size.Conn))
+
+	fmt.Printf("%s", ret)
 }
