@@ -350,6 +350,7 @@ const (
 	VS_STATS_DEV
 	VS_STATS_CTL
 	VS_STATS_MEM
+	VS_STATS_IP_VS_INFO
 	__VS_STATS_MAX
 )
 
@@ -376,7 +377,6 @@ const (
 	VS_CMD_NEW_LADDR    /* add local address */
 	VS_CMD_DEL_LADDR    /* del local address */
 	VS_CMD_GET_LADDR    /* dump local address */
-	VS_CMD_GET_STATS    /* dump workers/ctl  stats */
 	__VS_CMD_MAX
 )
 

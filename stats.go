@@ -174,6 +174,82 @@ func (r Vs_stats_worker_r) String() string {
 	return ret
 }
 
+type Vs_stats_dest struct {
+	Addr        Be32
+	Port        Be16
+	Conn_flags  uint32
+	Weight      int32
+	Activeconns uint32
+	Inactconns  uint32
+	Conns       uint64
+	Inpkts      uint64
+	Outpkts     uint64
+	Inbytes     uint64
+	Outbytes    uint64
+}
+
+type Vs_stats_svc struct {
+	Protocol    uint8
+	Addr        Be32
+	Port        Be16
+	Sched_name  string
+	Flags       uint32
+	Timeout     uint32
+	Netmask     Be32
+	Est_timeout uint32
+	Conns       uint64
+	Inpkts      uint64
+	Outpkts     uint64
+	Inbytes     uint64
+	Outbytes    uint64
+	Dests       []Vs_stats_dest
+}
+
+type Vs_stats_vs_r struct {
+	Code     int
+	Msg      string
+	Services []Vs_stats_svc
+}
+
+func ip_vs_fwd_name(flags uint32) string {
+	switch flags & VS_CONN_F_FWD_MASK {
+	case VS_CONN_F_LOCALNODE:
+		return "Local"
+	case VS_CONN_F_TUNNEL:
+		return "Tunnel"
+	case VS_CONN_F_DROUTE:
+		return "Route"
+	case VS_CONN_F_FULLNAT:
+		return "FullNat"
+	default:
+		return "Masq"
+	}
+
+}
+
+func (r Vs_stats_vs_r) String() string {
+	if r.Code != 0 {
+		return fmt.Sprintf("%s:%s", Ecode(r.Code), r.Msg)
+	}
+	var ret string
+
+	ret += fmt.Sprintf("Prot LocalAddress:Port Scheduler Flags\n")
+	//                  01234567890123456++++01234567890123456++++01234567890123456
+	ret += fmt.Sprintf("  -> RemoteAddress:Port Forward Weight ActiveConn InActConn\n")
+	for _, svc := range r.Services {
+		ret += fmt.Sprintf("%s  %08X:%04X %s \n", get_protocol_name(svc.Protocol),
+			Ntohl(svc.Addr), Ntohs(svc.Port), svc.Sched_name)
+		for _, dest := range svc.Dests {
+			ret += fmt.Sprintf("  -> %08X:%04X      %-7s %-6d %-10d %-10d\n",
+				Ntohl(dest.Addr), Ntohs(dest.Port), ip_vs_fwd_name(dest.Conn_flags),
+				dest.Weight, dest.Activeconns, dest.Inactconns)
+		}
+
+	}
+
+	return ret
+}
+
 var estats_names = []string{
 	"core_id",
 	"fullnat_add_toa_ok",
@@ -354,8 +430,11 @@ func (r Vs_stats_mem_r) String() string {
 }
 
 type Vs_stats_q struct {
-	Type int
-	Id   int
+	Type     int
+	Id       int
+	Protocol uint8
+	Addr     Be32
+	Port     Be16
 }
 
 func Get_stats_io(id int) (*Vs_stats_io_r, error) {
@@ -404,4 +483,17 @@ func Get_stats_mem() (*Vs_stats_mem_r, error) {
 
 	err := client.Call("stats", args, reply)
 	return reply, err
+}
+
+func Get_stats_vs(o *CmdOptions) (*Vs_stats_vs_r, error) {
+	var reply Vs_stats_vs_r
+	args := Vs_stats_q{
+		Type:     VS_STATS_IP_VS_INFO,
+		Addr:     o.Addr.Ip,
+		Port:     o.Addr.Port,
+		Protocol: uint8(o.Protocol),
+	}
+
+	err := client.Call("stats", args, &reply)
+	return &reply, err
 }

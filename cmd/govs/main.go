@@ -13,7 +13,6 @@ import (
 	"os/user"
 
 	"github.com/dpvs/govs"
-	"github.com/yubo/gotool/flags"
 )
 
 var (
@@ -36,7 +35,7 @@ func main() {
 
 	handler()
 
-	cmd := flags.Cmd
+	cmd := Cmd
 	if cmd.Action == nil {
 		return
 	}

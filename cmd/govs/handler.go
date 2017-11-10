@@ -8,115 +8,131 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
 
 	"github.com/dpvs/govs"
-	"github.com/yubo/gotool/flags"
 )
 
-func init() {
-	flags.FirstCmd.BoolVar(&govs.FirstCmd.ADD, "A", false, "add virtual service with options")
-	flags.FirstCmd.BoolVar(&govs.FirstCmd.EDIT, "E", false, "edit virtual service with options")
-	flags.FirstCmd.BoolVar(&govs.FirstCmd.DEL, "D", false, "delete virtual service")
-	flags.FirstCmd.BoolVar(&govs.FirstCmd.ADDDEST, "a", false, "add real server with options")
-	flags.FirstCmd.BoolVar(&govs.FirstCmd.EDITDEST, "e", false, "edit real server with options")
-	flags.FirstCmd.BoolVar(&govs.FirstCmd.DELDEST, "d", false, "delete real server")
-	flags.FirstCmd.BoolVar(&govs.FirstCmd.FLUSH, "C", false, "clear the whole table")
-	flags.FirstCmd.BoolVar(&govs.FirstCmd.LIST, "L", false, "list the table")
-	flags.FirstCmd.BoolVar(&govs.FirstCmd.LIST, "l", false, "list the table")
-	flags.FirstCmd.BoolVar(&govs.FirstCmd.ZERO, "Z", false, "zero counters in a service or all services")
-	flags.FirstCmd.BoolVar(&govs.FirstCmd.TIMEOUT, "TAG_SET", false, "set connection timeout values")
-	flags.FirstCmd.BoolVar(&govs.FirstCmd.USAGE, "h", false, "display this help message")
-	flags.FirstCmd.BoolVar(&govs.FirstCmd.VERSION, "V", false, "get version")
-	flags.FirstCmd.BoolVar(&govs.FirstCmd.ADDLADDR, "P", false, "add local address")
-	flags.FirstCmd.BoolVar(&govs.FirstCmd.DELLADDR, "Q", false, "del local address")
-	flags.FirstCmd.BoolVar(&govs.FirstCmd.GETLADDR, "G", false, "get local address")
-	flags.FirstCmd.BoolVar(&govs.FirstCmd.STATUS, "s", false, "get dpvs status")
+var (
+	Cmd       my_flag
+	FirstCmd  *flag.FlagSet
+	OthersCmd *flag.FlagSet
+)
 
-	flags.OthersCmd.StringVar(&govs.CmdOpt.TCP, "t", "", "service-address is host[:port]")
-	flags.OthersCmd.StringVar(&govs.CmdOpt.UDP, "u", "", "service-address is host[:port]")
-	flags.OthersCmd.Var(&govs.CmdOpt.Netmask, "M", "netmask deafult 0.0.0.0")
-	flags.OthersCmd.StringVar(&govs.CmdOpt.Sched_name, "s", "", "scheduler name rr/wrr")
-	flags.OthersCmd.UintVar(&govs.CmdOpt.Flags, "flags", 0, "the service flags")
-	flags.OthersCmd.Var(&govs.CmdOpt.Daddr, "r", "server-address is host (and port)")
-	flags.OthersCmd.IntVar(&govs.CmdOpt.Weight, "w", -1, "capacity of real server")
-	flags.OthersCmd.UintVar(&govs.CmdOpt.U_threshold, "x", 0, "upper threshold of connections")
-	flags.OthersCmd.UintVar(&govs.CmdOpt.L_threshold, "y", 0, "lower threshold of connections")
-	flags.OthersCmd.Var(&govs.CmdOpt.Lip, "z", "local-address")
-	flags.OthersCmd.StringVar(&govs.CmdOpt.Typ, "type", "", "type of the stats name(io/w/we/dev/ctl/mem/falcon)")
-	flags.OthersCmd.IntVar(&govs.CmdOpt.Id, "i", -1, "id of the stats object")
-	flags.OthersCmd.StringVar(&govs.CmdOpt.Timeout_s, "set", "", "set <tcp,tcp_fin,udp>")
-	flags.OthersCmd.UintVar(&govs.CmdOpt.Conn_flags, "conn_flags", 0, "the conn flags")
+type my_flag struct {
+	Name   int
+	Action func(args interface{})
+}
+
+func init() {
+	Cmd.Name = 0
+	Cmd.Action = nil
+
+	FirstCmd = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+	OthersCmd = flag.NewFlagSet("", flag.ExitOnError)
+
+	FirstCmd.BoolVar(&govs.FirstCmd.ADD, "A", false, "add virtual service with options")
+	FirstCmd.BoolVar(&govs.FirstCmd.EDIT, "E", false, "edit virtual service with options")
+	FirstCmd.BoolVar(&govs.FirstCmd.DEL, "D", false, "delete virtual service")
+	FirstCmd.BoolVar(&govs.FirstCmd.ADDDEST, "a", false, "add real server with options")
+	FirstCmd.BoolVar(&govs.FirstCmd.EDITDEST, "e", false, "edit real server with options")
+	FirstCmd.BoolVar(&govs.FirstCmd.DELDEST, "d", false, "delete real server")
+	FirstCmd.BoolVar(&govs.FirstCmd.FLUSH, "C", false, "clear the whole table")
+	FirstCmd.BoolVar(&govs.FirstCmd.LIST, "L", false, "list the table")
+	FirstCmd.BoolVar(&govs.FirstCmd.LIST, "l", false, "list the table")
+	FirstCmd.BoolVar(&govs.FirstCmd.ZERO, "Z", false, "zero counters in a service or all services")
+	FirstCmd.BoolVar(&govs.FirstCmd.TIMEOUT, "TAG_SET", false, "set connection timeout values")
+	FirstCmd.BoolVar(&govs.FirstCmd.USAGE, "h", false, "display this help message")
+	FirstCmd.BoolVar(&govs.FirstCmd.VERSION, "V", false, "get version")
+	FirstCmd.BoolVar(&govs.FirstCmd.ADDLADDR, "P", false, "add local address")
+	FirstCmd.BoolVar(&govs.FirstCmd.DELLADDR, "Q", false, "del local address")
+	FirstCmd.BoolVar(&govs.FirstCmd.GETLADDR, "G", false, "get local address")
+	FirstCmd.BoolVar(&govs.FirstCmd.STATUS, "s", false, "get dpvs status")
+
+	OthersCmd.StringVar(&govs.CmdOpt.TCP, "t", "", "service-address is host[:port]")
+	OthersCmd.StringVar(&govs.CmdOpt.UDP, "u", "", "service-address is host[:port]")
+	OthersCmd.Var(&govs.CmdOpt.Netmask, "M", "netmask deafult 0.0.0.0")
+	OthersCmd.StringVar(&govs.CmdOpt.Sched_name, "s", "", "scheduler name rr/wrr")
+	OthersCmd.UintVar(&govs.CmdOpt.Flags, "flags", 0, "the service flags")
+	OthersCmd.Var(&govs.CmdOpt.Daddr, "r", "server-address is host (and port)")
+	OthersCmd.IntVar(&govs.CmdOpt.Weight, "w", -1, "capacity of real server")
+	OthersCmd.UintVar(&govs.CmdOpt.U_threshold, "x", 0, "upper threshold of connections")
+	OthersCmd.UintVar(&govs.CmdOpt.L_threshold, "y", 0, "lower threshold of connections")
+	OthersCmd.Var(&govs.CmdOpt.Lip, "z", "local-address")
+	OthersCmd.StringVar(&govs.CmdOpt.Typ, "type", "", "type of the stats name(io/w/we/dev/ctl/mem/falcon/vs)")
+	OthersCmd.IntVar(&govs.CmdOpt.Id, "i", -1, "id of the stats object")
+	OthersCmd.StringVar(&govs.CmdOpt.Timeout_s, "set", "", "set <tcp,tcp_fin,udp>")
+	OthersCmd.UintVar(&govs.CmdOpt.Conn_flags, "conn_flags", 0, "the conn flags")
 }
 
 func handler() {
 	if len(os.Args) < 2 {
-		flags.Cmd.Action = list_handle
-		flags.Cmd.Name = govs.CMD_LIST
+		Cmd.Action = list_handle
+		Cmd.Name = govs.CMD_LIST
 		return
 	}
-	flags.FirstCmd.Parse(os.Args[1:2])
+	FirstCmd.Parse(os.Args[1:2])
 	switch {
 	case govs.FirstCmd.ADD:
-		flags.Cmd.Action = add_handle
-		flags.Cmd.Name = govs.CMD_ADD
+		Cmd.Action = add_handle
+		Cmd.Name = govs.CMD_ADD
 	case govs.FirstCmd.EDIT:
-		flags.Cmd.Action = edit_handle
-		flags.Cmd.Name = govs.CMD_EDIT
+		Cmd.Action = edit_handle
+		Cmd.Name = govs.CMD_EDIT
 	case govs.FirstCmd.DEL:
-		flags.Cmd.Action = del_handle
-		flags.Cmd.Name = govs.CMD_DEL
+		Cmd.Action = del_handle
+		Cmd.Name = govs.CMD_DEL
 	case govs.FirstCmd.ADDDEST:
-		flags.Cmd.Action = add_handle
-		flags.Cmd.Name = govs.CMD_ADDDEST
+		Cmd.Action = add_handle
+		Cmd.Name = govs.CMD_ADDDEST
 	case govs.FirstCmd.EDITDEST:
-		flags.Cmd.Action = edit_handle
-		flags.Cmd.Name = govs.CMD_EDITDEST
+		Cmd.Action = edit_handle
+		Cmd.Name = govs.CMD_EDITDEST
 	case govs.FirstCmd.DELDEST:
-		flags.Cmd.Action = del_handle
-		flags.Cmd.Name = govs.CMD_DELDEST
+		Cmd.Action = del_handle
+		Cmd.Name = govs.CMD_DELDEST
 	case govs.FirstCmd.ADDLADDR:
-		flags.Cmd.Action = add_handle
-		flags.Cmd.Name = govs.CMD_ADDLADDR
+		Cmd.Action = add_handle
+		Cmd.Name = govs.CMD_ADDLADDR
 	case govs.FirstCmd.DELLADDR:
-		flags.Cmd.Action = del_handle
-		flags.Cmd.Name = govs.CMD_DELLADDR
+		Cmd.Action = del_handle
+		Cmd.Name = govs.CMD_DELLADDR
 	case govs.FirstCmd.GETLADDR:
-		flags.Cmd.Action = list_handle
-		flags.Cmd.Name = govs.CMD_GETLADDR
+		Cmd.Action = list_handle
+		Cmd.Name = govs.CMD_GETLADDR
 	case govs.FirstCmd.FLUSH:
-		flags.Cmd.Action = flush_handle
-		flags.Cmd.Name = govs.CMD_FLUSH
+		Cmd.Action = flush_handle
+		Cmd.Name = govs.CMD_FLUSH
 	case govs.FirstCmd.LIST:
-		flags.Cmd.Action = list_handle
-		flags.Cmd.Name = govs.CMD_LIST
+		Cmd.Action = list_handle
+		Cmd.Name = govs.CMD_LIST
 	case govs.FirstCmd.STATUS:
-		flags.Cmd.Action = stats_handle
-		flags.Cmd.Name = govs.CMD_STATUS
+		Cmd.Action = stats_handle
+		Cmd.Name = govs.CMD_STATUS
 	case govs.FirstCmd.TIMEOUT:
-		flags.Cmd.Action = timeout_handle
-		flags.Cmd.Name = govs.CMD_TIMEOUT
+		Cmd.Action = timeout_handle
+		Cmd.Name = govs.CMD_TIMEOUT
 	case govs.FirstCmd.VERSION:
-		flags.Cmd.Action = version_handle
-		flags.Cmd.Name = govs.CMD_VERSION
+		Cmd.Action = version_handle
+		Cmd.Name = govs.CMD_VERSION
 	case govs.FirstCmd.ZERO:
-		flags.Cmd.Action = zero_handle
-		flags.Cmd.Name = govs.CMD_ZERO
+		Cmd.Action = zero_handle
+		Cmd.Name = govs.CMD_ZERO
 	default:
-		Usage()
-		flags.Usage()
+		usage()
 		return
 	}
-	flags.OthersCmd.Parse(os.Args[2:])
+	OthersCmd.Parse(os.Args[2:])
 	CmdCheck()
 }
 
 func CmdCheck() {
 	var options uint
 	OptCheck(&options)
-	i := flags.Cmd.Name - 1
+	i := Cmd.Name - 1
 	for j := 0; j < govs.NUMBER_OF_OPT; j++ {
 		if options&(1<<uint(j+1)) == 0 {
 			if govs.CMD_V_OPT[i][j] == '+' {
@@ -476,14 +492,23 @@ func stats_handle(arg interface{}) {
 			return
 		}
 		fmt.Println(relay)
+	case "vs":
+		opt := arg.(*govs.CallOptions)
+		govs.Parse_service(opt)
+		relay, err := govs.Get_stats_vs(&opt.Opt)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Println(relay)
 	case "falcon":
 		falcon_handle(id)
 	default:
-		fmt.Println("govs stats -t io/worker/dev/ctl")
+		fmt.Println("govs -s -type io/w/we/dev/ctl/mem/falcon/vs")
 	}
 }
 
-func Usage() {
+func usage() {
 	program := os.Args[0]
 	fmt.Println(
 		"Usage:\n",
@@ -501,6 +526,10 @@ func Usage() {
 		program, "-s [-type stats-name] [-i id]\n",
 		program, "-h\n",
 	)
+	fmt.Printf("Commands:\n")
+	FirstCmd.PrintDefaults()
+	fmt.Printf("\nOptions:\n")
+	OthersCmd.PrintDefaults()
 }
 
 func falcon_handle(id int) {
