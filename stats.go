@@ -435,6 +435,7 @@ type Vs_stats_q struct {
 	Protocol uint8
 	Addr     Be32
 	Port     Be16
+	Detail   uint8
 }
 
 func Get_stats_io(id int) (*Vs_stats_io_r, error) {
