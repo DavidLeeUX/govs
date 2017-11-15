@@ -557,7 +557,7 @@ func falcon_io(id int) {
 			rx_ring_pkts_drop += e.Rx_rings_drop_pkts[i]
 		}
 	}
-	ret += fmt.Sprintf("net.if.in.ring.drop.pkts %d\n", rx_ring_pkts_drop)
+	ret += fmt.Sprintf("COUNTER net.if.in.ring.drop.pkts %d\n", rx_ring_pkts_drop)
 
 	fmt.Printf("%s", ret)
 }
@@ -576,15 +576,15 @@ func falcon_dev(id int) {
 		return
 	}
 	for _, e := range relay_dev.Dev {
-		ret += fmt.Sprintf("net.if.in.packets %d iface=port%d\n", e.Ipackets, e.Port_id)
-		ret += fmt.Sprintf("net.if.in.bytes %d iface=port%d\n", e.Ibytes, e.Port_id)
-		ret += fmt.Sprintf("net.if.in.bits %d iface=port%d\n", e.Ibytes*8, e.Port_id)
-		ret += fmt.Sprintf("net.if.in.errors %d iface=port%d\n", e.Ierrors, e.Port_id)
-		ret += fmt.Sprintf("net.if.in.dropped %d iface=port%d\n", e.Imissed, e.Port_id)
-		ret += fmt.Sprintf("net.if.out.packets %d iface=port%d\n", e.Opackets, e.Port_id)
-		ret += fmt.Sprintf("net.if.out.bytes %d iface=port%d\n", e.Obytes, e.Port_id)
-		ret += fmt.Sprintf("net.if.out.bits %d iface=port%d\n", e.Obytes*8, e.Port_id)
-		ret += fmt.Sprintf("net.if.out.errors %d iface=port%d\n", e.Oerrors, e.Port_id)
+		ret += fmt.Sprintf("COUNTER net.if.in.packets %d iface=port%d\n", e.Ipackets, e.Port_id)
+		ret += fmt.Sprintf("COUNTER net.if.in.bytes %d iface=port%d\n", e.Ibytes, e.Port_id)
+		ret += fmt.Sprintf("COUNTER net.if.in.bits %d iface=port%d\n", e.Ibytes*8, e.Port_id)
+		ret += fmt.Sprintf("COUNTER net.if.in.errors %d iface=port%d\n", e.Ierrors, e.Port_id)
+		ret += fmt.Sprintf("COUNTER net.if.in.dropped %d iface=port%d\n", e.Imissed, e.Port_id)
+		ret += fmt.Sprintf("COUNTER net.if.out.packets %d iface=port%d\n", e.Opackets, e.Port_id)
+		ret += fmt.Sprintf("COUNTER net.if.out.bytes %d iface=port%d\n", e.Obytes, e.Port_id)
+		ret += fmt.Sprintf("COUNTER net.if.out.bits %d iface=port%d\n", e.Obytes*8, e.Port_id)
+		ret += fmt.Sprintf("COUNTER net.if.out.errors %d iface=port%d\n", e.Oerrors, e.Port_id)
 	}
 
 	fmt.Printf("%s", ret)
@@ -620,17 +620,17 @@ func falcon_mem(id int) {
 		res_mem.conn_used += (relay_mem.Size.Conn - e.Conn)
 	}
 
-	ret += fmt.Sprintf("mbuf.num.used %d\n", res_mem.mbuf_used)
-	ret += fmt.Sprintf("svc.num.used %d\n", res_mem.svc_used)
-	ret += fmt.Sprintf("rs.num.used %d\n", res_mem.rs_used)
-	ret += fmt.Sprintf("laddr.num.used %d\n", res_mem.laddr_used)
-	ret += fmt.Sprintf("conn.num.used %d\n", res_mem.conn_used)
+	ret += fmt.Sprintf("GAUGE mbuf.num.used %d\n", res_mem.mbuf_used)
+	ret += fmt.Sprintf("GAUGE svc.num.used %d\n", res_mem.svc_used)
+	ret += fmt.Sprintf("GAUGE rs.num.used %d\n", res_mem.rs_used)
+	ret += fmt.Sprintf("GAUGE laddr.num.used %d\n", res_mem.laddr_used)
+	ret += fmt.Sprintf("GAUGE conn.num.used %d\n", res_mem.conn_used)
 
-	ret += fmt.Sprintf("mbuf.percent.used %f\n", float64(res_mem.mbuf_used)/float64(relay_mem.Size.Mbuf))
-	ret += fmt.Sprintf("svc.percent.used %f\n", float64(res_mem.svc_used)/float64(relay_mem.Size.Svc))
-	ret += fmt.Sprintf("rs.percent.used %f\n", float64(res_mem.rs_used)/float64(relay_mem.Size.Rs))
-	ret += fmt.Sprintf("laddr.percent.used %f\n", float64(res_mem.laddr_used)/float64(relay_mem.Size.Laddr))
-	ret += fmt.Sprintf("conn.percent.used %f\n", float64(res_mem.conn_used)/float64(relay_mem.Size.Conn))
+	ret += fmt.Sprintf("GAUGE mbuf.percent.used %f\n", float64(res_mem.mbuf_used)/float64(relay_mem.Size.Mbuf))
+	ret += fmt.Sprintf("GAUGE svc.percent.used %f\n", float64(res_mem.svc_used)/float64(relay_mem.Size.Svc))
+	ret += fmt.Sprintf("GAUGE rs.percent.used %f\n", float64(res_mem.rs_used)/float64(relay_mem.Size.Rs))
+	ret += fmt.Sprintf("GAUGE laddr.percent.used %f\n", float64(res_mem.laddr_used)/float64(relay_mem.Size.Laddr))
+	ret += fmt.Sprintf("GAUGE conn.percent.used %f\n", float64(res_mem.conn_used)/float64(relay_mem.Size.Conn))
 
 	fmt.Printf("%s", ret)
 }
