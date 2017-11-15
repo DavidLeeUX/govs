@@ -66,6 +66,7 @@ func init() {
 	OthersCmd.IntVar(&govs.CmdOpt.Id, "i", -1, "id of the stats object")
 	OthersCmd.StringVar(&govs.CmdOpt.Timeout_s, "set", "", "set <tcp,tcp_fin,udp>")
 	OthersCmd.UintVar(&govs.CmdOpt.Conn_flags, "conn_flags", 0, "the conn flags")
+	OthersCmd.BoolVar(&govs.CmdOpt.Print_detail, "detail", false, "print detail information")
 }
 
 func handler() {
@@ -205,6 +206,9 @@ func OptCheck(options *uint) {
 	if govs.CmdOpt.Conn_flags != 0 {
 		set_option(options, govs.OPT_CONNFLAGS)
 	}
+	if govs.CmdOpt.Print_detail != false {
+		set_option(options, govs.OPT_PRINTDETAIL)
+	}
 
 }
 
@@ -247,104 +251,52 @@ func timeout_handle(arg interface{}) {
 	}
 }
 
-func list_svc_handle(o *govs.CmdOptions) {
+func list_handle(arg interface{}) {
+	opt := arg.(*govs.CallOptions)
+	if err := govs.Parse_service(opt); err != nil {
+		fmt.Println(err)
+		return
+	}
+	o := &opt.Opt
 
-	ret, err := govs.Get_service(o)
+	ret, err := govs.Get_stats_vs(o)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-
 	if ret.Code != 0 {
 		fmt.Println(ret.Msg)
 		return
 	}
 
-	fmt.Println(govs.Svc_title())
+	// print title
+	fmt.Println(govs.Svc_title(o.Print_detail))
 	if !govs.FirstCmd.GETLADDR {
-		fmt.Println(govs.Dest_title())
+		fmt.Println(govs.Dest_title(o.Print_detail))
 	} else {
 		fmt.Println(govs.Laddr_title())
 	}
 
-	fmt.Println(ret)
-	if !govs.FirstCmd.GETLADDR {
-		dests, err := govs.Get_dests(o)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		fmt.Println(dests)
-	} else {
-		laddrs, err := govs.Get_laddrs(o)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		fmt.Println(laddrs)
-	}
-	return
-}
-
-func list_svcs_handle(o *govs.CmdOptions) {
-
-	ret, err := govs.Get_services(o)
-
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	if ret.Code != 0 {
-		fmt.Println(ret.Msg)
-		return
-	}
-
-	fmt.Println(govs.Svc_title())
-	if !govs.FirstCmd.GETLADDR {
-		fmt.Println(govs.Dest_title())
-	} else {
-		fmt.Println(govs.Laddr_title())
-	}
-
+	//print data
 	for _, svc := range ret.Services {
-		fmt.Println(svc)
-		o.Addr.Ip = svc.Addr
-		o.Addr.Port = svc.Port
-		o.Protocol = govs.Protocol(svc.Protocol)
-
+		svc.ListVsStats(o.Print_detail)
 		if !govs.FirstCmd.GETLADDR {
-			dests, err := govs.Get_dests(o)
-			if err != nil || dests.Code != 0 ||
-				len(dests.Dests) == 0 {
-				//fmt.Println(err)
-				continue
+			for _, d := range svc.Dests {
+				d.ListDestStats(o.Print_detail)
 			}
-			fmt.Println(dests)
+			fmt.Println("")
 		} else {
+			o.Addr.Ip = svc.Addr
+			o.Addr.Port = svc.Port
+			o.Protocol = govs.Protocol(svc.Protocol)
+
 			laddrs, err := govs.Get_laddrs(o)
-			if err != nil || laddrs.Code != 0 ||
-				len(laddrs.Laddrs) == 0 {
-				//fmt.Println(err)
+			if err != nil || laddrs.Code != 0 || len(laddrs.Laddrs) == 0 {
 				continue
 			}
 			fmt.Println(laddrs)
 		}
 	}
-
-}
-
-func list_handle(arg interface{}) {
-	opt := arg.(*govs.CallOptions)
-	govs.Parse_service(opt)
-	o := &opt.Opt
-
-	if o.Addr.Ip != 0 {
-		list_svc_handle(o)
-		return
-	}
-
-	list_svcs_handle(o)
 }
 
 func flush_handle(arg interface{}) {
@@ -494,7 +446,10 @@ func stats_handle(arg interface{}) {
 		fmt.Println(relay)
 	case "vs":
 		opt := arg.(*govs.CallOptions)
-		govs.Parse_service(opt)
+		if err := govs.Parse_service(opt); err != nil {
+			fmt.Println(err)
+			return
+		}
 		relay, err := govs.Get_stats_vs(&opt.Opt)
 		if err != nil {
 			fmt.Println(err)

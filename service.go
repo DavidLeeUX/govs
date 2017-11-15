@@ -42,15 +42,41 @@ type Vs_service_user_r struct {
 }
 
 const (
-	fmt_svc_t = "%5s %21s %8s %8s %15s %6s %6s %5s %7s %10s %10s %10s %10s"
-	fmt_svc   = "%5s %21s %08x %8d %15s %6d %6d %5s %7d %10d %10d %10d %10d"
+	fmt_svc_t        = "%5s %21s %8s %8s %15s %6s %6s %5s %7s %10s %10s %10s %10s"
+	fmt_svc          = "%5s %21s %08x %8d %15s %6d %6d %5s %7d %10d %10d %10d %10d"
+	fmt_svc_simple   = "%5s %-21s %10s"
+	fmt_svc_simple_t = "%5s %-21s %10s"
 )
 
-func Svc_title() string {
-	return fmt.Sprintf(fmt_svc_t,
-		"Proto", "Addr:Port ", "Flags",
-		"Timeout", "Netmask", "dests", "laddrs", "Sched",
-		"Conns", "Inpkts", "Outpkts", "Inbytes", "Outbytes")
+func Svc_title(detail bool) string {
+	var res string
+	if detail == true {
+		res += fmt.Sprintf(fmt_svc_t,
+			"Proto", "Addr:Port ", "Flags",
+			"Timeout", "Netmask", "dests", "laddrs", "Sched",
+			"Conns", "Inpkts", "Outpkts", "Inbytes", "Outbytes")
+
+	} else {
+		res += fmt.Sprintf(fmt_svc_simple_t, "Prot", "Addr:Port", "Scheduler")
+	}
+	return res
+}
+
+func (svc *Vs_stats_svc) ListVsStats(detail bool) {
+	var res string
+	if detail == true {
+		res += fmt.Sprintf(fmt_svc,
+			get_protocol_name(svc.Protocol),
+			fmt.Sprintf("%s:%s", svc.Addr.String(), svc.Port.String()), svc.Flags,
+			svc.Timeout, svc.Netmask.String(),
+			svc.Num_dests, svc.Num_laddrs, svc.Sched_name,
+			svc.Conns, svc.Inpkts, svc.Outpkts,
+			svc.Inbytes, svc.Outbytes)
+	} else {
+		res += fmt.Sprintf(fmt_svc_simple, get_protocol_name(svc.Protocol),
+			fmt.Sprintf("%s:%s", svc.Addr.String(), svc.Port.String()), svc.Sched_name)
+	}
+	fmt.Println(res)
 }
 
 func (svc Vs_service_user_r) String() string {

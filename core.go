@@ -98,6 +98,9 @@ type CmdOptions struct {
 	Tcp_timeout     int
 	Tcp_fin_timeout int
 	Udp_timeout     int
+
+	/* others opt */
+	Print_detail bool
 }
 
 type FirstCommand struct {
@@ -156,6 +159,7 @@ const (
 	OPT_ID
 	OPT_TIMEOUT
 	OPT_CONNFLAGS
+	OPT_PRINTDETAIL
 	OPT_LAST
 )
 
@@ -193,6 +197,7 @@ var OPTNAMES = [NUMBER_OF_OPT]string{
 	"id",
 	"timeout",
 	"conn-flags",
+	"print detail",
 }
 
 /*
@@ -204,22 +209,22 @@ var OPTNAMES = [NUMBER_OF_OPT]string{
  */
 
 var CMD_V_OPT = [NUMBER_OF_CMD][NUMBER_OF_OPT]byte{
-	/*            svc  -M   -s  flags -r   -w   -x   -y   -z  type  -i timeout connflags */
-	/*ADD     */ {'+', ' ', ' ', ' ', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
-	/*EDIT    */ {'+', ' ', ' ', ' ', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
-	/*DEL     */ {'+', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
-	/*ADDDEST */ {'+', 'x', 'x', 'x', '+', ' ', ' ', ' ', 'x', 'x', 'x', 'x', ' '},
-	/*EDITDEST*/ {'+', 'x', 'x', 'x', '+', ' ', ' ', ' ', 'x', 'x', 'x', 'x', ' '},
-	/*DELDEST */ {'+', 'x', 'x', 'x', '+', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
-	/*FLUSH   */ {'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
-	/*LIST    */ {' ', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
-	/*ZERO    */ {'+', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
-	/*VERSION */ {'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
-	/*ADDLADDR*/ {'+', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '+', 'x', 'x', 'x', 'x'},
-	/*DELLADDR*/ {'+', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '+', 'x', 'x', 'x', 'x'},
-	/*GETLADDR*/ {' ', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
-	/*TIMEOUT */ {'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', ' ', 'x'},
-	/*STATUS  */ {'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', ' ', 'x', 'x', 'x'},
+	/*            svc  -M   -s  flags -r   -w   -x   -y   -z  type  -i timeout connflags -detail*/
+	/*ADD     */ {'+', ' ', ' ', ' ', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
+	/*EDIT    */ {'+', ' ', ' ', ' ', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
+	/*DEL     */ {'+', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
+	/*ADDDEST */ {'+', 'x', 'x', 'x', '+', ' ', ' ', ' ', 'x', 'x', 'x', 'x', ' ', 'x'},
+	/*EDITDEST*/ {'+', 'x', 'x', 'x', '+', ' ', ' ', ' ', 'x', 'x', 'x', 'x', ' ', 'x'},
+	/*DELDEST */ {'+', 'x', 'x', 'x', '+', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
+	/*FLUSH   */ {'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
+	/*LIST    */ {' ', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', ' '},
+	/*ZERO    */ {'+', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
+	/*VERSION */ {'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
+	/*ADDLADDR*/ {'+', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '+', 'x', 'x', 'x', 'x', 'x'},
+	/*DELLADDR*/ {'+', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '+', 'x', 'x', 'x', 'x', 'x'},
+	/*GETLADDR*/ {' ', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
+	/*TIMEOUT */ {'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', ' ', 'x', 'x'},
+	/*STATUS  */ {'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', ' ', 'x', 'x', 'x', 'x'},
 }
 
 type Be32 uint32

@@ -40,20 +40,47 @@ type Vs_dest_user_r struct {
 }
 
 const (
-	fmt_dest_t = "%5s %21s %8s %8s %15s %12s %12s %12s %7s %10s %10s %10s %10s"
-	fmt_dest   = "%5s %21s %08x %8d %15s %12d %12d %12d %7d %10d %10d %10d %10d"
+	fmt_dest_t        = "%5s %21s %8s %8s %15s %12s %12s %12s %7s %10s %10s %10s %10s"
+	fmt_dest          = "%5s %21s %8s %8d %15s %12d %12d %12d %7d %10d %10d %10d %10d"
+	fmt_dest_simple   = "%5s %-21s %8s %8d %10d %10d"
+	fmt_dest_simple_t = "%5s %-21s %8s %8s %10s %10s"
 )
 
-func Dest_title() string {
-	return fmt.Sprintf(fmt_dest_t,
-		"->", "Addr:Port", "Flags", "Weight", "threshold",
-		"Activeconns", "Inactconns", "Persistent",
-		"Conns", "Inpkts", "Outpkts", "Inbytes", "Outbytes")
+func Dest_title(detail bool) string {
+	var res string
+	if detail == true {
+		res += fmt.Sprintf(fmt_dest_t,
+			"->", "Addr:Port", "Flags", "Weight", "threshold",
+			"Activeconns", "Inactconns", "Persistent",
+			"Conns", "Inpkts", "Outpkts", "Inbytes", "Outbytes")
+
+	} else {
+		res += fmt.Sprintf(fmt_dest_simple_t, "->", "RemoteAddress:Port", "Forward",
+			"Weight", "ActiveConn", "InActConn")
+	}
+	return res
+}
+
+func (d *Vs_stats_dest) ListDestStats(detail bool) {
+	var res string
+	if detail == true {
+		res += fmt.Sprintf(fmt_dest,
+			"->", fmt.Sprintf("%s:%s", d.Addr.String(), d.Port.String()), ip_vs_fwd_name(d.Conn_flags),
+			d.Weight, fmt.Sprintf("%d-%d", d.L_threshold, d.U_threshold),
+			d.Activeconns, d.Inactconns, d.Persistent,
+			d.Conns, d.Inpkts, d.Outpkts, d.Inbytes, d.Outbytes)
+
+	} else {
+		res += fmt.Sprintf(fmt_dest_simple, "->",
+			fmt.Sprintf("%s:%s", d.Addr.String(), d.Port.String()), ip_vs_fwd_name(d.Conn_flags),
+			d.Weight, d.Activeconns, d.Inactconns)
+	}
+	fmt.Println(res)
 }
 
 func (d Vs_dest_user_r) String() string {
 	return fmt.Sprintf(fmt_dest,
-		"->", fmt.Sprintf("%s:%s", d.Addr.String(), d.Port.String()), d.Conn_flags,
+		"->", fmt.Sprintf("%s:%s", d.Addr.String(), d.Port.String()), ip_vs_fwd_name(uint32(d.Conn_flags)),
 		d.Weight, fmt.Sprintf("%d-%d", d.L_threshold, d.U_threshold),
 		d.Activeconns, d.Inactconns, d.Persistent,
 		d.Conns, d.Inpkts, d.Outpkts, d.Inbytes, d.Outbytes)

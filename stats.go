@@ -500,6 +500,10 @@ func Get_stats_vs(o *CmdOptions) (*Vs_stats_vs_r, error) {
 		Protocol: uint8(o.Protocol),
 	}
 
+	if o.Print_detail == true {
+		args.Detail = 1
+	}
+
 	err := client.Call("stats", args, &reply)
 	return &reply, err
 }
