@@ -179,8 +179,11 @@ type Vs_stats_dest struct {
 	Port        Be16
 	Conn_flags  uint32
 	Weight      int32
+	U_threshold uint32
+	L_threshold uint32
 	Activeconns uint32
 	Inactconns  uint32
+	Persistent  uint32
 	Conns       uint64
 	Inpkts      uint64
 	Outpkts     uint64
@@ -202,6 +205,8 @@ type Vs_stats_svc struct {
 	Outpkts     uint64
 	Inbytes     uint64
 	Outbytes    uint64
+	Num_dests   uint32
+	Num_laddrs  uint32
 	Dests       []Vs_stats_dest
 }
 
