@@ -300,6 +300,10 @@ var estats_names = []string{
 	"lro_reject",
 	"xmit_unexpected_mtu",
 	"conn_sched_unreach",
+	"conn_new_mbuf",
+	"conn_new_mbuf_fail",
+	"conn_reuse_mbuf",
+	"conn_reuse_mbuf_fail",
 }
 
 type Vs_estats_worker_r struct {
