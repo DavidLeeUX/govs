@@ -233,6 +233,10 @@ func ip_vs_fwd_name(flags uint32) string {
 }
 
 func (r *Vs_stats_vs_r) PrintVsStats(coefficient uint64) {
+	if r.Code != 0 {
+		fmt.Printf("%s:%s\n", Ecode(r.Code), r.Msg)
+		return
+	}
 	var ret string
 	ret += fmt.Sprintf("Prot LocalAddress:Port Scheduler Flags\n")
 
@@ -525,8 +529,8 @@ func Get_stats_vs(o *CmdOptions) (*Vs_stats_vs_r, error) {
 		Detail:   bool2u8(o.Print_detail),
 	}
 
-	if o.Print_all_worker == true {
-		args.Id = -1
+	if o.Id == -1 && o.Print_all_worker == false {
+		args.Id = 0
 	}
 
 	err := client.Call("stats", args, &reply)

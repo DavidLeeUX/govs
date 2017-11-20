@@ -63,7 +63,7 @@ func init() {
 	OthersCmd.UintVar(&govs.CmdOpt.L_threshold, "y", 0, "lower threshold of connections")
 	OthersCmd.Var(&govs.CmdOpt.Lip, "z", "local-address")
 	OthersCmd.StringVar(&govs.CmdOpt.Typ, "type", "", "type of the stats name(io/w/we/dev/ctl/mem/falcon/vs)")
-	OthersCmd.IntVar(&govs.CmdOpt.Id, "i", 0, "id of cpu worker")
+	OthersCmd.IntVar(&govs.CmdOpt.Id, "i", -1, "id of cpu worker")
 	OthersCmd.StringVar(&govs.CmdOpt.Timeout_s, "set", "", "set <tcp,tcp_fin,udp>")
 	OthersCmd.UintVar(&govs.CmdOpt.Conn_flags, "conn_flags", 0, "the conn flags")
 	OthersCmd.BoolVar(&govs.CmdOpt.Print_detail, "detail", false, "print detail information")
@@ -500,6 +500,43 @@ func falcon_handle(id int) {
 	falcon_io(id)
 	falcon_dev(id)
 	falcon_mem(id)
+	falcon_we(id)
+}
+
+func falcon_we(id int) {
+	var ret string
+	var items = []struct {
+		name  string
+		count int64
+	}{
+		{"conn_new_mbuf", 0},
+		{"conn_new_mbuf_fail", 0},
+		{"conn_reuse_mbuf", 0},
+		{"conn_reuse_mbuf_fail", 0},
+	}
+
+	relay_we, err := govs.Get_estats_worker(id)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	if relay_we.Code != 0 {
+		fmt.Printf("%s:%s", govs.Ecode(relay_we.Code), relay_we.Msg)
+		return
+	}
+
+	for _, item := range items {
+		for _, e := range relay_we.Worker {
+			item.count += e[item.name]
+		}
+	}
+
+	ret += fmt.Sprintf("COUNTER conn.new.mbuf %d\n", items[0].count)
+	ret += fmt.Sprintf("COUNTER conn.new.mbuf.fail %d\n", items[1].count)
+	ret += fmt.Sprintf("COUNTER conn.reuse.mbuf %d\n", items[2].count)
+	ret += fmt.Sprintf("COUNTER conn.reuse.mbuf.fail %d\n", items[3].count)
+
+	fmt.Println(ret)
 }
 
 func falcon_io(id int) {
