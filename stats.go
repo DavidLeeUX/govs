@@ -440,7 +440,7 @@ func (r Vs_stats_mem_r) String() string {
 
 type Vs_stats_q struct {
 	Type     int
-	Id       int
+	Id       int /* worker id */
 	Protocol uint8
 	Addr     Be32
 	Port     Be16
@@ -499,13 +499,11 @@ func Get_stats_vs(o *CmdOptions) (*Vs_stats_vs_r, error) {
 	var reply Vs_stats_vs_r
 	args := Vs_stats_q{
 		Type:     VS_STATS_IP_VS_INFO,
+		Id:       o.Id, /* worker id */
 		Addr:     o.Addr.Ip,
 		Port:     o.Addr.Port,
 		Protocol: uint8(o.Protocol),
-	}
-
-	if o.Print_detail == true {
-		args.Detail = 1
+		Detail:   bool2u8(o.Print_detail),
 	}
 
 	err := client.Call("stats", args, &reply)

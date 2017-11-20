@@ -92,3 +92,10 @@ func Parse_service(o *CallOptions) error {
 
 	return nil
 }
+
+func bool2u8(b bool) uint8 {
+	if b {
+		return 1
+	}
+	return 0
+}
