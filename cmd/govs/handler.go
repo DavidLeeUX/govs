@@ -457,12 +457,14 @@ func stats_handle(arg interface{}) {
 			fmt.Println(err)
 			return
 		}
-		relay, err := govs.Get_stats_vs(&opt.Opt)
+		o := &opt.Opt
+		relay, err := govs.Get_stats_vs(o)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-		fmt.Println(relay)
+		relay.PrintVsStats(o.Coefficient)
+
 	case "falcon":
 		falcon_handle(id)
 	default:
@@ -479,13 +481,13 @@ func usage() {
 		program, "-C\n",
 		program, "-a|e -t|u service-address -r server-address [-w weight] [-x upper-threshold] [-y lower-threshold] [-conn_flags conn-flags]\n",
 		program, "-d -t|u service-address -r server-address\n",
-		program, "-L|l [-t|u service-address] [-detail] [-i id] [-all]\n",
+		program, "-L|l [-t|u service-address] [-detail] [-i id] [-all] [-n coefficient]\n",
 		program, "-Z [-t|u service-address]\n",
 		program, "-P|Q -t|u service-address -z local-address\n",
 		program, "-G [-t|u service-address] \n",
 		program, "-TAG_SET [-set tcp/tcp_fin/udp]\n",
 		program, "-V\n",
-		program, "-s [-type stats-name] [-i id] [-all]\n",
+		program, "-s [-type stats-name] [-i id] [-all] [-n coefficient]\n",
 		program, "-h\n",
 	)
 	fmt.Printf("Commands:\n")

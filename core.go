@@ -216,7 +216,7 @@ var OPTNAMES = [NUMBER_OF_OPT]string{
  */
 
 var CMD_V_OPT = [NUMBER_OF_CMD][NUMBER_OF_OPT]byte{
-	/*            svc  -M   -s  flags -r   -w   -x   -y   -z  type  -i timeout connflags -detail -all*/
+	/*            svc  -M   -s  flags -r   -w   -x   -y   -z  type  -i timeout connflags -detail -all -n*/
 	/*ADD     */ {'+', ' ', ' ', ' ', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
 	/*EDIT    */ {'+', ' ', ' ', ' ', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
 	/*DEL     */ {'+', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
@@ -231,7 +231,7 @@ var CMD_V_OPT = [NUMBER_OF_CMD][NUMBER_OF_OPT]byte{
 	/*DELLADDR*/ {'+', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '+', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
 	/*GETLADDR*/ {' ', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
 	/*TIMEOUT */ {'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', ' ', 'x', 'x', 'x', 'x'},
-	/*STATUS  */ {' ', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', ' ', ' ', 'x', 'x', 'x', ' ', 'x'},
+	/*STATUS  */ {' ', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', ' ', ' ', 'x', 'x', 'x', ' ', ' '},
 }
 
 type Be32 uint32
