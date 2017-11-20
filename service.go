@@ -62,7 +62,7 @@ func Svc_title(detail bool) string {
 	return res
 }
 
-func (svc *Vs_stats_svc) ListVsStats(detail bool) {
+func (svc *Vs_stats_svc) ListVsStats(detail bool, Coefficient uint64) {
 	var res string
 	if detail == true {
 		res += fmt.Sprintf(fmt_svc,
@@ -70,8 +70,8 @@ func (svc *Vs_stats_svc) ListVsStats(detail bool) {
 			fmt.Sprintf("%s:%s", svc.Addr.String(), svc.Port.String()), svc.Flags,
 			svc.Timeout, svc.Netmask.String(),
 			svc.Num_dests, svc.Num_laddrs, svc.Sched_name,
-			svc.Conns, svc.Inpkts, svc.Outpkts,
-			svc.Inbytes, svc.Outbytes, svc.Est_timeout)
+			svc.Conns*Coefficient, svc.Inpkts*Coefficient, svc.Outpkts*Coefficient,
+			svc.Inbytes*Coefficient, svc.Outbytes*Coefficient, svc.Est_timeout)
 	} else {
 		res += fmt.Sprintf(fmt_svc_simple, get_protocol_name(svc.Protocol),
 			fmt.Sprintf("%s:%s", svc.Addr.String(), svc.Port.String()), svc.Sched_name)

@@ -68,6 +68,7 @@ func init() {
 	OthersCmd.UintVar(&govs.CmdOpt.Conn_flags, "conn_flags", 0, "the conn flags")
 	OthersCmd.BoolVar(&govs.CmdOpt.Print_detail, "detail", false, "print detail information")
 	OthersCmd.BoolVar(&govs.CmdOpt.Print_all_worker, "all", false, "print all cpu worker")
+	OthersCmd.Uint64Var(&govs.CmdOpt.Coefficient, "n", 1, "multiplication coefficient")
 }
 
 func handler() {
@@ -213,7 +214,9 @@ func OptCheck(options *uint) {
 	if govs.CmdOpt.Print_all_worker != false {
 		set_option(options, govs.OPT_PRINTALLWORKER)
 	}
-
+	if govs.CmdOpt.Coefficient != 1 {
+		set_option(options, govs.OPT_COEFFICIENT)
+	}
 }
 
 func set_option(options *uint, option uint) {
@@ -283,10 +286,10 @@ func list_handle(arg interface{}) {
 
 	//print data
 	for _, svc := range ret.Services {
-		svc.ListVsStats(o.Print_detail)
+		svc.ListVsStats(o.Print_detail, o.Coefficient)
 		if !govs.FirstCmd.GETLADDR {
 			for _, d := range svc.Dests {
-				d.ListDestStats(o.Print_detail)
+				d.ListDestStats(o.Print_detail, o.Coefficient)
 			}
 			fmt.Println("")
 		} else {

@@ -61,19 +61,20 @@ func Dest_title(detail bool) string {
 	return res
 }
 
-func (d *Vs_stats_dest) ListDestStats(detail bool) {
+func (d *Vs_stats_dest) ListDestStats(detail bool, Coefficient uint64) {
 	var res string
 	if detail == true {
 		res += fmt.Sprintf(fmt_dest,
 			"->", fmt.Sprintf("%s:%s", d.Addr.String(), d.Port.String()), ip_vs_fwd_name(d.Conn_flags),
 			d.Weight, fmt.Sprintf("%d-%d", d.L_threshold, d.U_threshold),
-			d.Activeconns, d.Inactconns, d.Persistent,
-			d.Conns, d.Inpkts, d.Outpkts, d.Inbytes, d.Outbytes)
+			uint64(d.Activeconns)*Coefficient, uint64(d.Inactconns)*Coefficient, d.Persistent,
+			d.Conns*Coefficient, d.Inpkts*Coefficient, d.Outpkts*Coefficient,
+			d.Inbytes*Coefficient, d.Outbytes*Coefficient)
 
 	} else {
 		res += fmt.Sprintf(fmt_dest_simple, "->",
 			fmt.Sprintf("%s:%s", d.Addr.String(), d.Port.String()), ip_vs_fwd_name(d.Conn_flags),
-			d.Weight, d.Activeconns, d.Inactconns)
+			d.Weight, uint64(d.Activeconns)*Coefficient, uint64(d.Inactconns)*Coefficient)
 	}
 	fmt.Println(res)
 }
