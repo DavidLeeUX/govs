@@ -506,6 +506,10 @@ func Get_stats_vs(o *CmdOptions) (*Vs_stats_vs_r, error) {
 		Detail:   bool2u8(o.Print_detail),
 	}
 
+	if o.Print_all_worker == true {
+		args.Id = -1
+	}
+
 	err := client.Call("stats", args, &reply)
 	return &reply, err
 }

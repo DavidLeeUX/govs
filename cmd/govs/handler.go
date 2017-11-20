@@ -63,10 +63,11 @@ func init() {
 	OthersCmd.UintVar(&govs.CmdOpt.L_threshold, "y", 0, "lower threshold of connections")
 	OthersCmd.Var(&govs.CmdOpt.Lip, "z", "local-address")
 	OthersCmd.StringVar(&govs.CmdOpt.Typ, "type", "", "type of the stats name(io/w/we/dev/ctl/mem/falcon/vs)")
-	OthersCmd.IntVar(&govs.CmdOpt.Id, "i", -1, "id of the stats object")
+	OthersCmd.IntVar(&govs.CmdOpt.Id, "i", 0, "id of cpu worker")
 	OthersCmd.StringVar(&govs.CmdOpt.Timeout_s, "set", "", "set <tcp,tcp_fin,udp>")
 	OthersCmd.UintVar(&govs.CmdOpt.Conn_flags, "conn_flags", 0, "the conn flags")
 	OthersCmd.BoolVar(&govs.CmdOpt.Print_detail, "detail", false, "print detail information")
+	OthersCmd.BoolVar(&govs.CmdOpt.Print_all_worker, "all", false, "print all cpu worker")
 }
 
 func handler() {
@@ -208,6 +209,9 @@ func OptCheck(options *uint) {
 	}
 	if govs.CmdOpt.Print_detail != false {
 		set_option(options, govs.OPT_PRINTDETAIL)
+	}
+	if govs.CmdOpt.Print_all_worker != false {
+		set_option(options, govs.OPT_PRINTALLWORKER)
 	}
 
 }
@@ -472,13 +476,13 @@ func usage() {
 		program, "-C\n",
 		program, "-a|e -t|u service-address -r server-address [-w weight] [-x upper-threshold] [-y lower-threshold] [-conn_flags conn-flags]\n",
 		program, "-d -t|u service-address -r server-address\n",
-		program, "-L|l [-t|u service-address]\n",
+		program, "-L|l [-t|u service-address] [-detail] [-i id] [-all]\n",
 		program, "-Z [-t|u service-address]\n",
 		program, "-P|Q -t|u service-address -z local-address\n",
 		program, "-G [-t|u service-address] \n",
 		program, "-TAG_SET [-set tcp/tcp_fin/udp]\n",
 		program, "-V\n",
-		program, "-s [-type stats-name] [-i id]\n",
+		program, "-s [-type stats-name] [-i id] [-all]\n",
 		program, "-h\n",
 	)
 	fmt.Printf("Commands:\n")
