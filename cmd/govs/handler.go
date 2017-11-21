@@ -505,14 +505,15 @@ func falcon_handle(id int) {
 
 func falcon_we(id int) {
 	var ret string
-	var items = []struct {
+	var items_we = []struct {
 		name  string
+		tag   string
 		count int64
 	}{
-		{"conn_new_mbuf", 0},
-		{"conn_new_mbuf_fail", 0},
-		{"conn_reuse_mbuf", 0},
-		{"conn_reuse_mbuf_fail", 0},
+		{"conn_new_mbuf", "conn.new.mbuf", 0},
+		{"conn_new_mbuf_fail", "conn.new.mbuf.fail", 0},
+		{"conn_reuse_mbuf", "conn.reuse.mbuf", 0},
+		{"conn_reuse_mbuf_fail", "conn.reuse.mbuf.fail", 0},
 	}
 
 	relay_we, err := govs.Get_estats_worker(id)
@@ -525,16 +526,12 @@ func falcon_we(id int) {
 		return
 	}
 
-	for _, item := range items {
+	for _, item := range items_we {
 		for _, e := range relay_we.Worker {
 			item.count += e[item.name]
 		}
+		ret += fmt.Sprintf("COUNTER %s %d\n", item.tag, item.count)
 	}
-
-	ret += fmt.Sprintf("COUNTER conn.new.mbuf %d\n", items[0].count)
-	ret += fmt.Sprintf("COUNTER conn.new.mbuf.fail %d\n", items[1].count)
-	ret += fmt.Sprintf("COUNTER conn.reuse.mbuf %d\n", items[2].count)
-	ret += fmt.Sprintf("COUNTER conn.reuse.mbuf.fail %d\n", items[3].count)
 
 	fmt.Println(ret)
 }
