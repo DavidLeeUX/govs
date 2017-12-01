@@ -285,25 +285,27 @@ func list_handle(arg interface{}) {
 	}
 
 	//print data
-	for _, svc := range ret.Services {
-		svc.ListVsStats(o.Print_detail, o.Coefficient)
-		if !govs.FirstCmd.GETLADDR {
-			for _, d := range svc.Dests {
-				d.ListDestStats(o.Print_detail, o.Coefficient)
-			}
-			fmt.Println("")
-		} else {
-			o.Addr.Ip = svc.Addr
-			o.Addr.Port = svc.Port
-			o.Protocol = govs.Protocol(svc.Protocol)
+	/*
+		for _, svc := range ret.Services {
+			svc.ListVsStats(o.Print_detail, o.Coefficient)
+			if !govs.FirstCmd.GETLADDR {
+				for _, d := range svc.Dests {
+					d.ListDestStats(o.Print_detail, o.Coefficient)
+				}
+				fmt.Println("")
+			} else {
+				o.Addr.Ip = svc.Addr
+				o.Addr.Port = svc.Port
+				o.Protocol = govs.Protocol(svc.Protocol)
 
-			laddrs, err := govs.Get_laddrs(o)
-			if err != nil || laddrs.Code != 0 || len(laddrs.Laddrs) == 0 {
-				continue
+				laddrs, err := govs.Get_laddrs(o)
+				if err != nil || laddrs.Code != 0 || len(laddrs.Laddrs) == 0 {
+					continue
+				}
+				fmt.Println(laddrs)
 			}
-			fmt.Println(laddrs)
 		}
-	}
+	*/
 }
 
 func flush_handle(arg interface{}) {

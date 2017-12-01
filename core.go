@@ -231,7 +231,7 @@ var CMD_V_OPT = [NUMBER_OF_CMD][NUMBER_OF_OPT]byte{
 	/*DELLADDR*/ {'+', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '+', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
 	/*GETLADDR*/ {' ', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'},
 	/*TIMEOUT */ {'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', ' ', 'x', 'x', 'x', 'x'},
-	/*STATUS  */ {' ', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', ' ', ' ', 'x', 'x', 'x', ' ', ' '},
+	/*STATUS  */ {' ', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', ' ', ' ', 'x', 'x', ' ', ' ', ' '},
 }
 
 type Be32 uint32
@@ -487,6 +487,7 @@ func Vs_dial() error {
 func Vs_close() {
 	if client != nil {
 		client.Close()
+		client = nil
 	}
 }
 

@@ -211,9 +211,10 @@ type Vs_stats_svc struct {
 }
 
 type Vs_stats_vs_r struct {
-	Code     int
-	Msg      string
-	Services []Vs_stats_svc
+	Code int
+	Msg  string
+	Text string
+	//Services []Vs_stats_svc
 }
 
 func ip_vs_fwd_name(flags uint32) string {
@@ -237,45 +238,33 @@ func (r *Vs_stats_vs_r) PrintVsStats(coefficient uint64) {
 		fmt.Printf("%s:%s\n", Ecode(r.Code), r.Msg)
 		return
 	}
-	var ret string
-	ret += fmt.Sprintf("Prot LocalAddress:Port Scheduler Flags\n")
+	fmt.Println(r.Text)
+	return
+	/*
+		var ret string
+		ret += fmt.Sprintf("Prot LocalAddress:Port Scheduler Flags\n")
 
-	ret += fmt.Sprintf("  -> RemoteAddress:Port Forward Weight ActiveConn InActConn\n")
-	for _, svc := range r.Services {
-		ret += fmt.Sprintf("%s  %08X:%04X %s \n", get_protocol_name(svc.Protocol),
-			Ntohl(svc.Addr), Ntohs(svc.Port), svc.Sched_name)
-		for _, dest := range svc.Dests {
-			ret += fmt.Sprintf("  -> %08X:%04X      %-7s %-6d %-10d %-10d\n",
-				Ntohl(dest.Addr), Ntohs(dest.Port), ip_vs_fwd_name(dest.Conn_flags),
-				dest.Weight, uint64(dest.Activeconns)*coefficient, uint64(dest.Inactconns)*coefficient)
+		ret += fmt.Sprintf("  -> RemoteAddress:Port Forward Weight ActiveConn InActConn\n")
+		for _, svc := range r.Services {
+			ret += fmt.Sprintf("%s  %08X:%04X %s \n", get_protocol_name(svc.Protocol),
+				Ntohl(svc.Addr), Ntohs(svc.Port), svc.Sched_name)
+			for _, dest := range svc.Dests {
+				ret += fmt.Sprintf("  -> %08X:%04X      %-7s %-6d %-10d %-10d\n",
+					Ntohl(dest.Addr), Ntohs(dest.Port), ip_vs_fwd_name(dest.Conn_flags),
+					dest.Weight, uint64(dest.Activeconns)*coefficient, uint64(dest.Inactconns)*coefficient)
+			}
+
 		}
 
-	}
-
-	fmt.Println(ret)
+		fmt.Println(ret)
+	*/
 }
 
 func (r Vs_stats_vs_r) String() string {
 	if r.Code != 0 {
 		return fmt.Sprintf("%s:%s", Ecode(r.Code), r.Msg)
 	}
-	var ret string
-
-	ret += fmt.Sprintf("Prot LocalAddress:Port Scheduler Flags\n")
-	//                  01234567890123456++++01234567890123456++++01234567890123456
-	ret += fmt.Sprintf("  -> RemoteAddress:Port Forward Weight ActiveConn InActConn\n")
-	for _, svc := range r.Services {
-		ret += fmt.Sprintf("%s  %08X:%04X %s \n", get_protocol_name(svc.Protocol),
-			Ntohl(svc.Addr), Ntohs(svc.Port), svc.Sched_name)
-		for _, dest := range svc.Dests {
-			ret += fmt.Sprintf("  -> %08X:%04X      %-7s %-6d %-10d %-10d\n",
-				Ntohl(dest.Addr), Ntohs(dest.Port), ip_vs_fwd_name(dest.Conn_flags),
-				dest.Weight, dest.Activeconns, dest.Inactconns)
-		}
-
-	}
-
-	return ret
+	return r.Text
 }
 
 var estats_names = []string{
