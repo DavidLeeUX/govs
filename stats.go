@@ -529,7 +529,7 @@ func Get_stats_vs(o *CmdOptions) (*Vs_stats_vs_r, error) {
 		Detail:   bool2u8(o.Print_detail),
 	}
 
-	if o.Id == -1 && o.Print_all_worker == false {
+	if o.Id < 0 && o.Print_all_worker == false {
 		args.Id = 0
 	}
 

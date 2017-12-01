@@ -499,7 +499,7 @@ func usage() {
 func falcon_handle(id int) {
 	falcon_io(id)
 	falcon_dev(id)
-	falcon_mem(id)
+	falcon_mem()
 	falcon_we(id)
 }
 
@@ -588,12 +588,11 @@ func falcon_dev(id int) {
 	fmt.Printf("%s", ret)
 }
 
-func falcon_mem(id int) {
+func falcon_mem() {
 	var ret string
 
 	// get mem stats
 	var res_mem struct {
-		mbuf_used  int
 		svc_used   int
 		rs_used    int
 		laddr_used int
@@ -610,25 +609,26 @@ func falcon_mem(id int) {
 		return
 	}
 
+	count := 0
 	for _, e := range relay_mem.Available {
-		res_mem.mbuf_used += (relay_mem.Size.Mbuf - e.Mbuf)
+		ret += fmt.Sprintf("GAUGE cpu%d.mbuf.num.used %d\n", count, relay_mem.Size.Mbuf-e.Mbuf)
+		ret += fmt.Sprintf("GAUGE cpu%d.mbuf.percent.used %f\n", count, float64(relay_mem.Size.Mbuf-e.Mbuf)/float64(relay_mem.Size.Mbuf))
 		res_mem.svc_used += (relay_mem.Size.Svc - e.Svc)
 		res_mem.rs_used += (relay_mem.Size.Rs - e.Rs)
 		res_mem.laddr_used += (relay_mem.Size.Laddr - e.Laddr)
 		res_mem.conn_used += (relay_mem.Size.Conn - e.Conn)
+		count++
 	}
 
-	ret += fmt.Sprintf("GAUGE mbuf.num.used %d\n", res_mem.mbuf_used)
 	ret += fmt.Sprintf("GAUGE svc.num.used %d\n", res_mem.svc_used)
 	ret += fmt.Sprintf("GAUGE rs.num.used %d\n", res_mem.rs_used)
 	ret += fmt.Sprintf("GAUGE laddr.num.used %d\n", res_mem.laddr_used)
 	ret += fmt.Sprintf("GAUGE conn.num.used %d\n", res_mem.conn_used)
 
-	ret += fmt.Sprintf("GAUGE mbuf.percent.used %f\n", float64(res_mem.mbuf_used)/float64(relay_mem.Size.Mbuf))
-	ret += fmt.Sprintf("GAUGE svc.percent.used %f\n", float64(res_mem.svc_used)/float64(relay_mem.Size.Svc))
-	ret += fmt.Sprintf("GAUGE rs.percent.used %f\n", float64(res_mem.rs_used)/float64(relay_mem.Size.Rs))
-	ret += fmt.Sprintf("GAUGE laddr.percent.used %f\n", float64(res_mem.laddr_used)/float64(relay_mem.Size.Laddr))
-	ret += fmt.Sprintf("GAUGE conn.percent.used %f\n", float64(res_mem.conn_used)/float64(relay_mem.Size.Conn))
+	ret += fmt.Sprintf("GAUGE svc.percent.used %f\n", float64(res_mem.svc_used)/float64(count*relay_mem.Size.Svc))
+	ret += fmt.Sprintf("GAUGE rs.percent.used %f\n", float64(res_mem.rs_used)/float64(count*relay_mem.Size.Rs))
+	ret += fmt.Sprintf("GAUGE laddr.percent.used %f\n", float64(res_mem.laddr_used)/float64(count*relay_mem.Size.Laddr))
+	ret += fmt.Sprintf("GAUGE conn.percent.used %f\n", float64(res_mem.conn_used)/float64(count*relay_mem.Size.Conn))
 
 	fmt.Printf("%s", ret)
 }
