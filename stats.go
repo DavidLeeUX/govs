@@ -210,7 +210,7 @@ type Vs_stats_svc struct {
 	Dests       []Vs_stats_dest
 }
 
-type Vs_stats_vs_r struct {
+type Vs_stats_text_r struct {
 	Code int
 	Msg  string
 	Text string
@@ -233,7 +233,7 @@ func ip_vs_fwd_name(flags uint32) string {
 
 }
 
-func (r *Vs_stats_vs_r) PrintVsStats(coefficient uint64) {
+func (r *Vs_stats_text_r) PrintVsStats(coefficient uint64) {
 	if r.Code != 0 {
 		fmt.Printf("%s:%s\n", Ecode(r.Code), r.Msg)
 		return
@@ -260,7 +260,7 @@ func (r *Vs_stats_vs_r) PrintVsStats(coefficient uint64) {
 	*/
 }
 
-func (r Vs_stats_vs_r) String() string {
+func (r Vs_stats_text_r) String() string {
 	if r.Code != 0 {
 		return fmt.Sprintf("%s:%s", Ecode(r.Code), r.Msg)
 	}
@@ -412,22 +412,24 @@ func (r Vs_stats_ctl_r) String() string {
 }
 
 type Vs_stats_mem_r struct {
-	Code int
-	Msg  string
-	Size struct {
-		Mbuf  int
-		Svc   int
-		Rs    int
-		Laddr int
-		Conn  int
-	}
-	Available []struct {
-		Socket_id int
-		Mbuf      int
-		Svc       int
-		Rs        int
-		Laddr     int
-		Conn      int
+	Code    int
+	Msg     string
+	Svc     int
+	Rs      int
+	Laddr   int
+	Conn    int
+	Sockets []struct {
+		Socket_id        int
+		Kni_mbuf_cnt     int
+		Kni_mbuf_size    int
+		Nic_mbuf_cnt     int
+		Nic_mbuf_size    int
+		Worker_mbuf_cnt  int
+		Worker_mbuf_size int
+		Svc              int
+		Rs               int
+		Laddr            int
+		Conn             int
 	}
 }
 
@@ -435,16 +437,18 @@ func (r Vs_stats_mem_r) String() string {
 	if r.Code != 0 {
 		return fmt.Sprintf("%s:%s", Ecode(r.Code), r.Msg)
 	}
-	ret := fmt.Sprintf("%-3s %20s %20s %20s %20s %20s (used/total)\n",
-		"id", "mbuf", "svc", "rs", "laddr", "conn")
-	for _, e := range r.Available {
-		ret += fmt.Sprintf("%-3d %20s %20s %20s %20s %20s\n",
+	ret := fmt.Sprintf("%-3s %20s %20s %20s %20s %20s %20s %20s (used/total)\n",
+		"id", "kni_mbuf", "nic_mbuf", "worker_mbuf", "svc", "rs", "laddr", "conn")
+	for _, e := range r.Sockets {
+		ret += fmt.Sprintf("%-3d %20s %20s %20s %20s %20s %20s %20s\n",
 			e.Socket_id,
-			fmt.Sprintf("%d/%d", r.Size.Mbuf-e.Mbuf, r.Size.Mbuf),
-			fmt.Sprintf("%d/%d", r.Size.Svc-e.Svc, r.Size.Svc),
-			fmt.Sprintf("%d/%d", r.Size.Rs-e.Rs, r.Size.Rs),
-			fmt.Sprintf("%d/%d", r.Size.Laddr-e.Laddr, r.Size.Laddr),
-			fmt.Sprintf("%d/%d", r.Size.Conn-e.Conn, r.Size.Conn),
+			fmt.Sprintf("%d/%d", e.Kni_mbuf_size-e.Kni_mbuf_cnt, e.Kni_mbuf_size),
+			fmt.Sprintf("%d/%d", e.Nic_mbuf_size-e.Nic_mbuf_cnt, e.Nic_mbuf_size),
+			fmt.Sprintf("%d/%d", e.Worker_mbuf_size-e.Worker_mbuf_cnt, e.Worker_mbuf_size),
+			fmt.Sprintf("%d/%d", r.Svc-e.Svc, r.Svc),
+			fmt.Sprintf("%d/%d", r.Rs-e.Rs, r.Rs),
+			fmt.Sprintf("%d/%d", r.Laddr-e.Laddr, r.Laddr),
+			fmt.Sprintf("%d/%d", r.Conn-e.Conn, r.Conn),
 		)
 	}
 	return ret
@@ -507,8 +511,8 @@ func Get_stats_mem() (*Vs_stats_mem_r, error) {
 	return reply, err
 }
 
-func Get_stats_vs(o *CmdOptions) (*Vs_stats_vs_r, error) {
-	var reply Vs_stats_vs_r
+func Get_stats_vs(o *CmdOptions) (*Vs_stats_text_r, error) {
+	var reply Vs_stats_text_r
 	args := Vs_stats_q{
 		Type:     VS_STATS_IP_VS_INFO,
 		Id:       o.Id, /* worker id */
@@ -521,6 +525,14 @@ func Get_stats_vs(o *CmdOptions) (*Vs_stats_vs_r, error) {
 	if o.Id < 0 && o.Print_all_worker == false {
 		args.Id = 0
 	}
+
+	err := client.Call("stats", args, &reply)
+	return &reply, err
+}
+
+func Get_stats_debug() (*Vs_stats_text_r, error) {
+	var reply Vs_stats_text_r
+	args := Vs_stats_q{Type: VS_STATS_DEBUG}
 
 	err := client.Call("stats", args, &reply)
 	return &reply, err

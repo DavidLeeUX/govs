@@ -466,6 +466,13 @@ func stats_handle(arg interface{}) {
 			return
 		}
 		relay.PrintVsStats(o.Coefficient)
+	case "debug":
+		relay, err := govs.Get_stats_debug()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Print(relay.Text)
 
 	case "falcon":
 		falcon_handle(id)
@@ -612,13 +619,21 @@ func falcon_mem() {
 	}
 
 	count := 0
-	for _, e := range relay_mem.Available {
-		ret += fmt.Sprintf("GAUGE cpu%d.mbuf.num.used %d\n", count, relay_mem.Size.Mbuf-e.Mbuf)
-		ret += fmt.Sprintf("GAUGE cpu%d.mbuf.percent.used %f\n", count, float64(relay_mem.Size.Mbuf-e.Mbuf)/float64(relay_mem.Size.Mbuf))
-		res_mem.svc_used += (relay_mem.Size.Svc - e.Svc)
-		res_mem.rs_used += (relay_mem.Size.Rs - e.Rs)
-		res_mem.laddr_used += (relay_mem.Size.Laddr - e.Laddr)
-		res_mem.conn_used += (relay_mem.Size.Conn - e.Conn)
+	for _, e := range relay_mem.Sockets {
+		ret += fmt.Sprintf("GAUGE cpu%d.kni.mbuf.num.used %d\n",
+			count, e.Kni_mbuf_size-e.Kni_mbuf_cnt)
+		ret += fmt.Sprintf("GAUGE cpu%d.kni.mbuf.percent.used %f\n",
+			count, float64(e.Kni_mbuf_size-e.Kni_mbuf_cnt)/float64(e.Kni_mbuf_size))
+		ret += fmt.Sprintf("GAUGE cpu%d.nic.mbuf.num.used %d\n", count, e.Kni_mbuf_size-e.Kni_mbuf_cnt)
+		ret += fmt.Sprintf("GAUGE cpu%d.nic.mbuf.percent.used %f\n",
+			count, float64(e.Nic_mbuf_size-e.Nic_mbuf_cnt)/float64(e.Nic_mbuf_size))
+		ret += fmt.Sprintf("GAUGE cpu%d.worker.mbuf.num.used %d\n", count, e.Nic_mbuf_size-e.Nic_mbuf_cnt)
+		ret += fmt.Sprintf("GAUGE cpu%d.worker.mbuf.percent.used %f\n",
+			count, float64(e.Worker_mbuf_size-e.Worker_mbuf_cnt)/float64(e.Worker_mbuf_size))
+		res_mem.svc_used += (relay_mem.Svc - e.Svc)
+		res_mem.rs_used += (relay_mem.Rs - e.Rs)
+		res_mem.laddr_used += (relay_mem.Laddr - e.Laddr)
+		res_mem.conn_used += (relay_mem.Conn - e.Conn)
 		count++
 	}
 
@@ -627,10 +642,10 @@ func falcon_mem() {
 	ret += fmt.Sprintf("GAUGE laddr.num.used %d\n", res_mem.laddr_used)
 	ret += fmt.Sprintf("GAUGE conn.num.used %d\n", res_mem.conn_used)
 
-	ret += fmt.Sprintf("GAUGE svc.percent.used %f\n", float64(res_mem.svc_used)/float64(count*relay_mem.Size.Svc))
-	ret += fmt.Sprintf("GAUGE rs.percent.used %f\n", float64(res_mem.rs_used)/float64(count*relay_mem.Size.Rs))
-	ret += fmt.Sprintf("GAUGE laddr.percent.used %f\n", float64(res_mem.laddr_used)/float64(count*relay_mem.Size.Laddr))
-	ret += fmt.Sprintf("GAUGE conn.percent.used %f\n", float64(res_mem.conn_used)/float64(count*relay_mem.Size.Conn))
+	ret += fmt.Sprintf("GAUGE svc.percent.used %f\n", float64(res_mem.svc_used)/float64(count*relay_mem.Svc))
+	ret += fmt.Sprintf("GAUGE rs.percent.used %f\n", float64(res_mem.rs_used)/float64(count*relay_mem.Rs))
+	ret += fmt.Sprintf("GAUGE laddr.percent.used %f\n", float64(res_mem.laddr_used)/float64(count*relay_mem.Laddr))
+	ret += fmt.Sprintf("GAUGE conn.percent.used %f\n", float64(res_mem.conn_used)/float64(count*relay_mem.Conn))
 
 	fmt.Printf("%s", ret)
 }
