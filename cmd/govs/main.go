@@ -10,6 +10,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"os"
 	"os/user"
 
 	"github.com/dpvs/govs"
@@ -25,12 +26,12 @@ func main() {
 	usr, err := user.Current()
 	if err != nil {
 		fmt.Println(err.Error())
-		return
+		os.Exit(1)
 	}
 
 	if usr.Uid != "0" {
 		fmt.Println(EACCES.Error())
-		return
+		os.Exit(1)
 	}
 
 	handler()
@@ -44,5 +45,10 @@ func main() {
 		return
 	}
 	defer govs.Vs_close()
-	cmd.Action(&govs.CallOptions{Opt: govs.CmdOpt})
+	err = cmd.Action(&govs.CallOptions{Opt: govs.CmdOpt})
+	if err != nil {
+		fmt.Println(err)
+		govs.Vs_close()
+		os.Exit(1)
+	}
 }

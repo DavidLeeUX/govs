@@ -11,6 +11,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
+	"strconv"
+	"strings"
 	"unsafe"
 )
 
@@ -98,4 +100,19 @@ func bool2u8(b bool) uint8 {
 		return 1
 	}
 	return 0
+}
+
+func DecodeAddr(s string) (string, error) {
+	words := strings.Split(s, ":")
+	ip, err := strconv.ParseInt(words[0], 16, 32)
+	if err != nil {
+		return "", err
+	}
+	addr := u32_to_addr(uint32(ip))
+	port, err := strconv.ParseInt(words[1], 16, 16)
+	if err != nil {
+		return addr, err
+	}
+	addr += fmt.Sprintf(":%d", port)
+	return addr, nil
 }

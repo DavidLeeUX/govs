@@ -8,6 +8,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -24,7 +25,7 @@ var (
 
 type my_flag struct {
 	Name   int
-	Action func(args interface{})
+	Action func(args interface{}) error
 }
 
 func init() {
@@ -68,7 +69,6 @@ func init() {
 	OthersCmd.UintVar(&govs.CmdOpt.Conn_flags, "conn_flags", 0, "the conn flags")
 	OthersCmd.BoolVar(&govs.CmdOpt.Print_detail, "detail", false, "print detail information")
 	OthersCmd.BoolVar(&govs.CmdOpt.Print_all_worker, "all", false, "print all cpu worker")
-	OthersCmd.Uint64Var(&govs.CmdOpt.Coefficient, "n", 1, "multiplication coefficient")
 }
 
 func handler() {
@@ -214,78 +214,81 @@ func OptCheck(options *uint) {
 	if govs.CmdOpt.Print_all_worker != false {
 		set_option(options, govs.OPT_PRINTALLWORKER)
 	}
-	if govs.CmdOpt.Coefficient != 1 {
-		set_option(options, govs.OPT_COEFFICIENT)
-	}
 }
 
 func set_option(options *uint, option uint) {
 	*options |= (1 << option)
 }
 
-func version_handle(arg interface{}) {
-	if version, err := govs.Get_version(); err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(version)
+func version_handle(arg interface{}) error {
+	version, err := govs.Get_version()
+	if err != nil {
+		return err
 	}
+	fmt.Println(version)
+	return nil
 }
 
-func info_handle(arg interface{}) {
-	if info, err := govs.Get_version(); err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(info)
+func info_handle(arg interface{}) error {
+	info, err := govs.Get_version()
+	if err != nil {
+		return err
 	}
+	fmt.Println(info)
+	return nil
 }
 
-func timeout_handle(arg interface{}) {
+func timeout_handle(arg interface{}) error {
 	opt := arg.(*govs.CallOptions)
 	o := &opt.Opt
 
 	if o.Timeout_s != "" {
 		if timeout, err := govs.Set_timeout(o); err != nil {
-			fmt.Println(err)
+			return err
 		} else {
 			fmt.Println(timeout)
 		}
 	} else {
 		if timeout, err := govs.Get_timeout(o); err != nil {
-			fmt.Println(err)
+			return err
 		} else {
 			fmt.Println(timeout)
 		}
 	}
+	return nil
 }
 
-func list_handle(arg interface{}) {
+func list_handle(arg interface{}) error {
 	opt := arg.(*govs.CallOptions)
 	if err := govs.Parse_service(opt); err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 	o := &opt.Opt
 
 	ret, err := govs.Get_stats_vs(o)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 	if ret.Code != 0 {
-		fmt.Println(ret.Msg)
-		return
+		return errors.New(ret.Msg)
 	}
 
-	// print title
-	fmt.Println(govs.Svc_title(o.Print_detail))
-	if !govs.FirstCmd.GETLADDR {
-		fmt.Println(govs.Dest_title(o.Print_detail))
-	} else {
-		fmt.Println(govs.Laddr_title())
+	err = ret.Decode_handle()
+	if err != nil {
+		return err
 	}
-
-	//print data
+	return nil
 	/*
+		// print title
+		fmt.Println(govs.Svc_title(o.Print_detail))
+		if !govs.FirstCmd.GETLADDR {
+			fmt.Println(govs.Dest_title(o.Print_detail))
+		} else {
+			fmt.Println(govs.Laddr_title())
+		}
+
+		//print data
+
 		for _, svc := range ret.Services {
 			svc.ListVsStats(o.Print_detail, o.Coefficient)
 			if !govs.FirstCmd.GETLADDR {
@@ -306,36 +309,37 @@ func list_handle(arg interface{}) {
 			}
 		}
 	*/
+
 }
 
-func flush_handle(arg interface{}) {
-	if reply, err := govs.Set_flush(nil); err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(reply)
+func flush_handle(arg interface{}) error {
+	reply, err := govs.Set_flush(nil)
+	if err != nil {
+		return err
 	}
+	fmt.Println(reply)
+	return nil
 }
 
-func zero_handle(arg interface{}) {
+func zero_handle(arg interface{}) error {
 	opt := arg.(*govs.CallOptions)
 	govs.Parse_service(opt)
 
-	if reply, err := govs.Set_zero(&opt.Opt); err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(reply)
+	reply, err := govs.Set_zero(&opt.Opt)
+	if err != nil {
+		return err
 	}
+	fmt.Println(reply)
+	return nil
 
 }
 
-func add_handle(arg interface{}) {
-	var err error
+func add_handle(arg interface{}) (err error) {
 	var reply *govs.Vs_cmd_r
 
 	opt := arg.(*govs.CallOptions)
-	if err := govs.Parse_service(opt); err != nil {
-		fmt.Println(err)
-		return
+	if err = govs.Parse_service(opt); err != nil {
+		return err
 	}
 	o := &opt.Opt
 
@@ -349,20 +353,18 @@ func add_handle(arg interface{}) {
 	}
 
 	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(reply)
+		return err
 	}
+	fmt.Println(reply)
+	return nil
 }
 
-func edit_handle(arg interface{}) {
-	var err error
+func edit_handle(arg interface{}) (err error) {
 	var reply *govs.Vs_cmd_r
 
 	opt := arg.(*govs.CallOptions)
-	if err := govs.Parse_service(opt); err != nil {
-		fmt.Println(err)
-		return
+	if err = govs.Parse_service(opt); err != nil {
+		return err
 	}
 	o := &opt.Opt
 
@@ -374,20 +376,18 @@ func edit_handle(arg interface{}) {
 	}
 
 	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(reply)
+		return err
 	}
+	fmt.Println(reply)
+	return nil
 }
 
-func del_handle(arg interface{}) {
-	var err error
+func del_handle(arg interface{}) (err error) {
 	var reply *govs.Vs_cmd_r
 
 	opt := arg.(*govs.CallOptions)
-	if err := govs.Parse_service(opt); err != nil {
-		fmt.Println(err)
-		return
+	if err = govs.Parse_service(opt); err != nil {
+		return err
 	}
 	o := &opt.Opt
 
@@ -401,84 +401,75 @@ func del_handle(arg interface{}) {
 	}
 
 	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(reply)
+		return err
 	}
+	fmt.Println(reply)
+	return nil
 }
 
-func stats_handle(arg interface{}) {
+func stats_handle(arg interface{}) error {
 	id := govs.CmdOpt.Id
 
 	switch govs.CmdOpt.Typ {
 	case "io":
 		relay, err := govs.Get_stats_io(id)
 		if err != nil {
-			fmt.Println(err)
-			return
+			return err
 		}
 		fmt.Println(relay)
 	case "w":
 		relay, err := govs.Get_stats_worker(id)
 		if err != nil {
-			fmt.Println(err)
-			return
+			return err
 		}
 		fmt.Println(relay)
 	case "we":
 		relay, err := govs.Get_estats_worker(id)
 		if err != nil {
-			fmt.Println(err)
-			return
+			return err
 		}
 		fmt.Println(relay)
 	case "dev":
 		relay, err := govs.Get_stats_dev(id)
 		if err != nil {
-			fmt.Println(err)
-			return
+			return err
 		}
 		fmt.Println(relay)
 	case "ctl":
 		relay, err := govs.Get_stats_ctl()
 		if err != nil {
-			fmt.Println(err)
-			return
+			return err
 		}
 		fmt.Println(relay)
 	case "mem":
 		relay, err := govs.Get_stats_mem()
 		if err != nil {
-			fmt.Println(err)
-			return
+			return err
 		}
 		fmt.Println(relay)
 	case "vs":
 		opt := arg.(*govs.CallOptions)
 		if err := govs.Parse_service(opt); err != nil {
-			fmt.Println(err)
-			return
+			return err
 		}
 		o := &opt.Opt
 		relay, err := govs.Get_stats_vs(o)
 		if err != nil {
-			fmt.Println(err)
-			return
+			return err
 		}
-		relay.PrintVsStats(o.Coefficient)
+		relay.PrintVsStats()
 	case "debug":
 		relay, err := govs.Get_stats_debug()
 		if err != nil {
-			fmt.Println(err)
-			return
+			return err
 		}
-		fmt.Print(relay.Text)
-
+		fmt.Println(relay.Text)
 	case "falcon":
 		falcon_handle(id)
 	default:
 		fmt.Println("govs -s -type io/w/we/dev/ctl/mem/falcon/vs")
 	}
+	return nil
 }
 
 func usage() {
@@ -527,11 +518,9 @@ func falcon_we(id int) {
 
 	relay_we, err := govs.Get_estats_worker(id)
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 	if relay_we.Code != 0 {
-		fmt.Printf("%s:%s", govs.Ecode(relay_we.Code), relay_we.Msg)
 		return
 	}
 
@@ -552,11 +541,9 @@ func falcon_io(id int) {
 	//get io stats
 	relay_io, err := govs.Get_stats_io(id)
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 	if relay_io.Code != 0 {
-		fmt.Printf("%s:%s", govs.Ecode(relay_io.Code), relay_io.Msg)
 		return
 	}
 	for _, e := range relay_io.Io {
@@ -575,11 +562,9 @@ func falcon_dev(id int) {
 	//get dev stats
 	relay_dev, err := govs.Get_stats_dev(id)
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 	if relay_dev.Code != 0 {
-		fmt.Printf("%s:%s", govs.Ecode(relay_dev.Code), relay_dev.Msg)
 		return
 	}
 	for _, e := range relay_dev.Dev {
@@ -610,11 +595,9 @@ func falcon_mem() {
 
 	relay_mem, err := govs.Get_stats_mem()
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 	if relay_mem.Code != 0 {
-		fmt.Printf("%s:%s", govs.Ecode(relay_mem.Code), relay_mem.Msg)
 		return
 	}
 
@@ -622,14 +605,29 @@ func falcon_mem() {
 	for _, e := range relay_mem.Sockets {
 		ret += fmt.Sprintf("GAUGE cpu%d.kni.mbuf.num.used %d\n",
 			count, e.Kni_mbuf_size-e.Kni_mbuf_cnt)
-		ret += fmt.Sprintf("GAUGE cpu%d.kni.mbuf.percent.used %f\n",
-			count, float64(e.Kni_mbuf_size-e.Kni_mbuf_cnt)/float64(e.Kni_mbuf_size))
-		ret += fmt.Sprintf("GAUGE cpu%d.nic.mbuf.num.used %d\n", count, e.Kni_mbuf_size-e.Kni_mbuf_cnt)
-		ret += fmt.Sprintf("GAUGE cpu%d.nic.mbuf.percent.used %f\n",
-			count, float64(e.Nic_mbuf_size-e.Nic_mbuf_cnt)/float64(e.Nic_mbuf_size))
-		ret += fmt.Sprintf("GAUGE cpu%d.worker.mbuf.num.used %d\n", count, e.Nic_mbuf_size-e.Nic_mbuf_cnt)
-		ret += fmt.Sprintf("GAUGE cpu%d.worker.mbuf.percent.used %f\n",
-			count, float64(e.Worker_mbuf_size-e.Worker_mbuf_cnt)/float64(e.Worker_mbuf_size))
+		if e.Kni_mbuf_size != 0 {
+			ret += fmt.Sprintf("GAUGE cpu%d.kni.mbuf.percent.used %f\n",
+				count, float64(e.Kni_mbuf_size-e.Kni_mbuf_cnt)/float64(e.Kni_mbuf_size))
+		} else {
+			ret += fmt.Sprintf("GAUGE cpu%d.kni.mbuf.percent.used %f\n", count, float64(0))
+		}
+
+		ret += fmt.Sprintf("GAUGE cpu%d.nic.mbuf.num.used %d\n", count, e.Nic_mbuf_size-e.Nic_mbuf_cnt)
+		if e.Nic_mbuf_size != 0 {
+			ret += fmt.Sprintf("GAUGE cpu%d.nic.mbuf.percent.used %f\n",
+				count, float64(e.Nic_mbuf_size-e.Nic_mbuf_cnt)/float64(e.Nic_mbuf_size))
+		} else {
+			ret += fmt.Sprintf("GAUGE cpu%d.nic.mbuf.percent.used %f\n", count, float64(0))
+		}
+
+		ret += fmt.Sprintf("GAUGE cpu%d.worker.mbuf.num.used %d\n", count, e.Worker_mbuf_size-e.Worker_mbuf_cnt)
+		if e.Worker_mbuf_size != 0 {
+			ret += fmt.Sprintf("GAUGE cpu%d.worker.mbuf.percent.used %f\n",
+				count, float64(e.Worker_mbuf_size-e.Worker_mbuf_cnt)/float64(e.Worker_mbuf_size))
+		} else {
+			ret += fmt.Sprintf("GAUGE cpu%d.worker.mbuf.percent.used %f\n", count, float64(0))
+		}
+
 		res_mem.svc_used += (relay_mem.Svc - e.Svc)
 		res_mem.rs_used += (relay_mem.Rs - e.Rs)
 		res_mem.laddr_used += (relay_mem.Laddr - e.Laddr)
@@ -638,14 +636,36 @@ func falcon_mem() {
 	}
 
 	ret += fmt.Sprintf("GAUGE svc.num.used %d\n", res_mem.svc_used)
-	ret += fmt.Sprintf("GAUGE rs.num.used %d\n", res_mem.rs_used)
-	ret += fmt.Sprintf("GAUGE laddr.num.used %d\n", res_mem.laddr_used)
-	ret += fmt.Sprintf("GAUGE conn.num.used %d\n", res_mem.conn_used)
+	if relay_mem.Svc != 0 {
+		ret += fmt.Sprintf("GAUGE svc.percent.used %f\n",
+			float64(res_mem.svc_used)/float64(count*relay_mem.Svc))
+	} else {
+		ret += fmt.Sprintf("GAUGE svc.percent.used %f\n", float64(0))
+	}
 
-	ret += fmt.Sprintf("GAUGE svc.percent.used %f\n", float64(res_mem.svc_used)/float64(count*relay_mem.Svc))
-	ret += fmt.Sprintf("GAUGE rs.percent.used %f\n", float64(res_mem.rs_used)/float64(count*relay_mem.Rs))
-	ret += fmt.Sprintf("GAUGE laddr.percent.used %f\n", float64(res_mem.laddr_used)/float64(count*relay_mem.Laddr))
-	ret += fmt.Sprintf("GAUGE conn.percent.used %f\n", float64(res_mem.conn_used)/float64(count*relay_mem.Conn))
+	ret += fmt.Sprintf("GAUGE rs.num.used %d\n", res_mem.rs_used)
+	if relay_mem.Rs != 0 {
+		ret += fmt.Sprintf("GAUGE rs.percent.used %f\n",
+			float64(res_mem.rs_used)/float64(count*relay_mem.Rs))
+	} else {
+		ret += fmt.Sprintf("GAUGE rs.percent.used %f\n", float64(0))
+	}
+
+	ret += fmt.Sprintf("GAUGE laddr.num.used %d\n", res_mem.laddr_used)
+	if relay_mem.Laddr != 0 {
+		ret += fmt.Sprintf("GAUGE laddr.percent.used %f\n",
+			float64(res_mem.laddr_used)/float64(count*relay_mem.Laddr))
+	} else {
+		ret += fmt.Sprintf("GAUGE laddr.percent.used %f\n", float64(0))
+	}
+
+	ret += fmt.Sprintf("GAUGE conn.num.used %d\n", res_mem.conn_used)
+	if relay_mem.Conn != 0 {
+		ret += fmt.Sprintf("GAUGE conn.percent.used %f\n",
+			float64(res_mem.conn_used)/float64(count*relay_mem.Conn))
+	} else {
+		ret += fmt.Sprintf("GAUGE conn.percent.used %f\n", float64(0))
+	}
 
 	fmt.Printf("%s", ret)
 }

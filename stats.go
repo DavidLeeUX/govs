@@ -7,7 +7,11 @@
  */
 package govs
 
-import "fmt"
+import (
+	"bufio"
+	"fmt"
+	"strings"
+)
 
 const (
 	VS_CTL_S_SYNC = iota
@@ -233,7 +237,7 @@ func ip_vs_fwd_name(flags uint32) string {
 
 }
 
-func (r *Vs_stats_text_r) PrintVsStats(coefficient uint64) {
+func (r *Vs_stats_text_r) PrintVsStats() {
 	if r.Code != 0 {
 		fmt.Printf("%s:%s\n", Ecode(r.Code), r.Msg)
 		return
@@ -258,6 +262,24 @@ func (r *Vs_stats_text_r) PrintVsStats(coefficient uint64) {
 
 		fmt.Println(ret)
 	*/
+}
+
+func (r *Vs_stats_text_r) Decode_handle() error {
+	s := bufio.NewScanner(strings.NewReader(r.Text))
+	for s.Scan() {
+		line := s.Text()
+		words := strings.Fields(line)
+		if len(words[1]) == 13 {
+			addr, err := DecodeAddr(words[1])
+			if err != nil {
+				return err
+			}
+			fmt.Println(strings.Replace(line, words[1], addr, 1))
+		} else {
+			fmt.Println(line)
+		}
+	}
+	return nil
 }
 
 func (r Vs_stats_text_r) String() string {
@@ -522,9 +544,11 @@ func Get_stats_vs(o *CmdOptions) (*Vs_stats_text_r, error) {
 		Detail:   bool2u8(o.Print_detail),
 	}
 
-	if o.Id < 0 && o.Print_all_worker == false {
-		args.Id = 0
-	}
+	/*
+		if o.Id < 0 && o.Print_all_worker == false {
+			args.Id = 0
+		}
+	*/
 
 	err := client.Call("stats", args, &reply)
 	return &reply, err
