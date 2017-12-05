@@ -104,12 +104,12 @@ func bool2u8(b bool) uint8 {
 
 func DecodeAddr(s string) (string, error) {
 	words := strings.Split(s, ":")
-	ip, err := strconv.ParseInt(words[0], 16, 32)
+	ip, err := strconv.ParseInt(words[0], 16, 0)
 	if err != nil {
 		return "", err
 	}
 	addr := u32_to_addr(uint32(ip))
-	port, err := strconv.ParseInt(words[1], 16, 16)
+	port, err := strconv.ParseInt(words[1], 16, 0)
 	if err != nil {
 		return addr, err
 	}
