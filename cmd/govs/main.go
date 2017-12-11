@@ -46,9 +46,11 @@ func main() {
 	}
 	defer govs.Vs_close()
 	err = cmd.Action(&govs.CallOptions{Opt: govs.CmdOpt})
-	if err != nil && err.Error() != "worker or resource busy" {
+	if err != nil {
 		fmt.Println(err)
 		govs.Vs_close()
-		os.Exit(1)
+		if err.Error() != "worker or resource busy" {
+			os.Exit(1)
+		}
 	}
 }
