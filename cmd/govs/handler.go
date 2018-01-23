@@ -514,6 +514,9 @@ func falcon_we(id int) {
 		{"conn_new_mbuf_fail", "conn.new.mbuf.fail", 0},
 		{"conn_reuse_mbuf", "conn.reuse.mbuf", 0},
 		{"conn_reuse_mbuf_fail", "conn.reuse.mbuf.fail", 0},
+		{"conn_new", "conn.new", 0},
+		{"conn_del", "conn.del", 0},
+		{"conn_expire", "conn.expire", 0},
 	}
 
 	relay_we, err := govs.Get_estats_worker(id)

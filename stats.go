@@ -338,6 +338,9 @@ var estats_names = []string{
 	"conn_new_mbuf_fail",
 	"conn_reuse_mbuf",
 	"conn_reuse_mbuf_fail",
+	"conn_new",
+	"conn_del",
+	"conn_expire",
 }
 
 type Vs_estats_worker_r struct {
